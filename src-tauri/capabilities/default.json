@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Permissions du client Deliriuum Direct",
+  "windows": ["main"],
+  "permissions": ["core:default", "opener:default"]
+}

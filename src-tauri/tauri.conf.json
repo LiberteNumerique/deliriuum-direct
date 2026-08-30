@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Deliriuum Direct",
+  "version": "0.1.0",
+  "identifier": "com.deliriuum.direct",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Deliriuum Direct",
+        "width": 420,
+        "height": 780,
+        "resizable": false,
+        "center": true,
+        "theme": "Dark",
+        "backgroundColor": "#08080c"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src https://master.deliriuum.com"
+    },
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis",
+      "dmg",
+      "appimage",
+      "deb"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "copyright": "© Alliance pour les Libertés Numériques — GPLv3",
+    "shortDescription": "Protection de tout l'appareil",
+    "longDescription": "Deliriuum Direct masque votre adresse IP pour toutes les applications de votre ordinateur, via un tunnel WireGuard."
+  }
+}

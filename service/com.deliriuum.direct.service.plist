@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.deliriuum.direct.service</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/libexec/deliriuum-direct-service</string>
+    </array>
+
+    <!-- Le tunnel doit survivre à la fermeture du client, et repartir seul. -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- wg-quick est installé par Homebrew, hors du PATH par défaut de launchd. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/deliriuum-direct.log</string>
+</dict>
+</plist>

@@ -1,0 +1,30 @@
+[package]
+name = "deliriuum-direct"
+version = "0.1.0"
+edition = "2021"
+description = "Deliriuum Direct — protection de tout l'appareil"
+authors = ["Alliance pour les Libertés Numériques"]
+license = "GPL-3.0-or-later"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+x25519-dalek = { version = "2", features = ["static_secrets", "getrandom"] }
+rand = "0.8"
+base64 = "0.22"
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+
+# Pour l'étape suivante, dans le service privilégié :
+# boringtun = "0.6"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

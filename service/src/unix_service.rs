@@ -420,7 +420,7 @@ pub fn run() {
 
     // Accessible aux utilisateurs de la machine, pas au monde entier.
     let _ = std::fs::set_permissions(SOCKET, std::fs::Permissions::from_mode(0o660));
-    let _ = Command::new("chgrp").args(["admin", SOCKET]).status();
+    let _ = Command::new("chgrp").args(["deliriuum", SOCKET]).status();
 
     spawn_watchdog();
     eprintln!("[deliriuum] service dÃ©marrÃ©, socket {SOCKET}");

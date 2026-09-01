@@ -1,4 +1,4 @@
-﻿use std::ffi::OsStr;
+use std::ffi::OsStr;
 use std::fs;
 use std::iter::once;
 use std::os::windows::ffi::OsStrExt;
@@ -67,13 +67,13 @@ fn write_config(config: &str) -> Result<PathBuf, String> {
 
     fs::create_dir_all(parent)
         .map_err(|e| format!(
-            "Impossible de créer {} : {e}",
+            "Impossible de crÃƒÂ©er {} : {e}",
             parent.display()
         ))?;
 
     fs::write(&path, config.as_bytes())
         .map_err(|e| format!(
-            "Impossible d'écrire {} : {e}",
+            "Impossible d'ÃƒÂ©crire {} : {e}",
             path.display()
         ))?;
 
@@ -120,7 +120,7 @@ fn install(config: &std::path::Path) -> Result<(), String> {
 
     if manager.is_null() {
         return Err(format!(
-            "OpenSCManagerW a échoué : {}",
+            "OpenSCManagerW a ÃƒÂ©chouÃƒÂ© : {}",
             std::io::Error::last_os_error()
         ));
     }
@@ -137,6 +137,7 @@ fn install(config: &std::path::Path) -> Result<(), String> {
             SERVICE_START
                 | SERVICE_STOP
                 | SERVICE_QUERY_STATUS
+                | SERVICE_CHANGE_CONFIG
                 | DELETE_ACCESS,
             SERVICE_WIN32_OWN_PROCESS,
             SERVICE_DEMAND_START,
@@ -156,7 +157,7 @@ fn install(config: &std::path::Path) -> Result<(), String> {
         }
 
         return Err(format!(
-            "CreateServiceW a échoué : {}",
+            "CreateServiceW a ÃƒÂ©chouÃƒÂ© : {}",
             std::io::Error::last_os_error()
         ));
     }
@@ -199,7 +200,7 @@ fn open_service(access: u32) -> Result<(*mut core::ffi::c_void, *mut core::ffi::
 
     if manager.is_null() {
         return Err(format!(
-            "OpenSCManagerW a échoué : {}",
+            "OpenSCManagerW a ÃƒÂ©chouÃƒÂ© : {}",
             std::io::Error::last_os_error()
         ));
     }
@@ -220,7 +221,7 @@ fn open_service(access: u32) -> Result<(*mut core::ffi::c_void, *mut core::ffi::
         }
 
         return Err(format!(
-            "OpenServiceW a échoué : {}",
+            "OpenServiceW a ÃƒÂ©chouÃƒÂ© : {}",
             std::io::Error::last_os_error()
         ));
     }
@@ -258,10 +259,10 @@ pub fn up(config: &str) -> Result<(), String> {
     }
 
     if let Some(error) = error {
-        // 1056 = une instance du service est déjà en cours.
+        // 1056 = une instance du service est dÃƒÂ©jÃƒÂ  en cours.
         if error.raw_os_error() != Some(1056) {
             return Err(format!(
-                "Impossible de démarrer le tunnel WireGuard : {error}"
+                "Impossible de dÃƒÂ©marrer le tunnel WireGuard : {error}"
             ));
         }
     }
@@ -301,10 +302,10 @@ pub fn down() -> Result<(), String> {
     }
 
     if let Some(error) = error {
-        // 1062 = le service n'est pas démarré.
+        // 1062 = le service n'est pas dÃƒÂ©marrÃƒÂ©.
         if error.raw_os_error() != Some(1062) {
             return Err(format!(
-                "Impossible d'arrêter le tunnel WireGuard : {error}"
+                "Impossible d'arrÃƒÂªter le tunnel WireGuard : {error}"
             ));
         }
     }

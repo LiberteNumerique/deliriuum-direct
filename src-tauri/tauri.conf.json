@@ -1,45 +1,59 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Deliriuum Direct",
-  "version": "0.1.0",
-  "identifier": "com.deliriuum.direct",
-  "build": {
-    "frontendDist": "../src"
-  },
-  "app": {
-    "windows": [
-      {
-        "label": "main",
-        "title": "Deliriuum Direct",
-        "width": 420,
-        "height": 780,
-        "resizable": false,
-        "center": true,
-        "theme": "Dark",
-        "backgroundColor": "#08080c"
-      }
-    ],
-    "security": {
-      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://master.deliriuum.com"
-    },
-    "withGlobalTauri": true
-  },
-  "bundle": {
-    "active": true,
-    "targets": [
-      "nsis",
-      "dmg",
-      "appimage",
-      "deb"
-    ],
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ],
-    "copyright": "© Alliance pour les Libertés Numériques — GPLv3",
-    "shortDescription": "Protection de tout l'appareil",
-    "longDescription": "Deliriuum Direct masque votre adresse IP pour toutes les applications de votre ordinateur, via un tunnel WireGuard."
-  }
+    "$schema":  "https://schema.tauri.app/config/2",
+    "productName":  "Deliriuum Direct",
+    "version":  "0.1.0",
+    "identifier":  "com.deliriuum.direct",
+    "build":  {
+                  "frontendDist":  "../src"
+              },
+    "app":  {
+                "windows":  [
+                                {
+                                    "label":  "main",
+                                    "title":  "Deliriuum Direct",
+                                    "width":  420,
+                                    "height":  780,
+                                    "resizable":  false,
+                                    "center":  true,
+                                    "theme":  "Dark",
+                                    "backgroundColor":  "#08080c"
+                                }
+                            ],
+                "security":  {
+                                 "csp":  "default-src \u0027self\u0027; img-src \u0027self\u0027 data:; style-src \u0027self\u0027 \u0027unsafe-inline\u0027; connect-src \u0027self\u0027 https://master.deliriuum.com"
+                             },
+                "withGlobalTauri":  true
+            },
+    "bundle":  {
+                   "active":  true,
+                   "targets":  [
+                                   "nsis",
+                                   "dmg",
+                                   "appimage",
+                                   "deb"
+                               ],
+                   "icon":  [
+                                "icons/32x32.png",
+                                "icons/128x128.png",
+                                "icons/icon.icns",
+                                "icons/icon.ico"
+                            ],
+                   "copyright":  "© Alliance pour les Libertés Numériques — GPLv3",
+                   "shortDescription":  "VPN gratuit — hébergé en Islande chez 1984.is",
+                   "longDescription":  "Deliriuum Direct est un VPN gratuit hébergé en Islande chez 1984.is.",
+                   "resources":  [
+                                     "resources/windows/deliriuum-direct-service.exe",
+                                     "resources/windows/tunnel.dll",
+                                     "resources/windows/wireguard.dll"
+                                 ],
+                   "windows":  {
+                                   "webviewInstallMode":  {
+                                                              "type":  "embedBootstrapper"
+                                                          },
+                                   "nsis":  {
+                                                "installMode":  "perMachine",
+                                                "installerHooks":  "./windows/hooks.nsh"
+                                            }
+                               }
+               }
 }

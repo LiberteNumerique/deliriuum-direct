@@ -3,11 +3,19 @@ mod config;
 #[cfg(unix)]
 mod engine;
 
-#[cfg(unix)]
+#[cfg(target_os = "macos")]
 #[path = "net.rs"]
 mod netconf;
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
+#[path = "net_linux.rs"]
+mod netconf;
+
+#[cfg(target_os = "macos")]
+mod utun;
+
+#[cfg(target_os = "linux")]
+#[path = "tun_linux.rs"]
 mod utun;
 
 #[cfg(unix)]

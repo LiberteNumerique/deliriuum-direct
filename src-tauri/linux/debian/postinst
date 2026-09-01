@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+if ! getent group deliriuum >/dev/null 2>&1; then
+    groupadd --system deliriuum
+fi
+
+if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+    usermod -aG deliriuum "$SUDO_USER" || true
+fi
+
+systemctl daemon-reload || true
+systemctl enable deliriuum-direct.service || true
+systemctl restart deliriuum-direct.service || true
+
+exit 0

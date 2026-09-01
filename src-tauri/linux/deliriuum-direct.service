@@ -1,0 +1,15 @@
+[Unit]
+Description=Deliriuum Direct privileged VPN service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/deliriuum-direct/deliriuum-direct-service
+Restart=on-failure
+RestartSec=2
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+{
+  "bundle": {
+    "targets": [
+      "deb"
+    ],
+    "resources": [],
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "iproute2",
+          "nftables",
+          "systemd",
+          "wireguard-tools"
+        ],
+        "files": {
+          "/usr/lib/deliriuum-direct/deliriuum-direct-service": "../service/target/release/deliriuum-direct-service",
+          "/lib/systemd/system/deliriuum-direct.service": "linux/deliriuum-direct.service"
+        },
+        "postInstallScript": "linux/debian/postinst",
+        "preRemoveScript": "linux/debian/prerm",
+        "postRemoveScript": "linux/debian/postrm"
+      }
+    }
+  }
+}

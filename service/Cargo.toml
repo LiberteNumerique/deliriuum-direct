@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "deliriuum-direct-service"
 version = "0.1.0"
 edition = "2021"
@@ -14,9 +14,8 @@ libc = "0.2"
 boringtun = { version = "0.6", default-features = false }
 x25519-dalek = { version = "=2.0.0-rc.3", features = ["static_secrets"] }
 
-[target.'cfg(windows)'.dependencies]
-wintun = "0.5.1"
 
+[target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_Security",

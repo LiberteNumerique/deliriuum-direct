@@ -1,4 +1,4 @@
-﻿mod config;
+mod config;
 
 #[cfg(unix)]
 mod engine;
@@ -15,6 +15,9 @@ mod unix_service;
 
 #[cfg(windows)]
 mod windows_service;
+
+#[cfg(windows)]
+mod windows_control_service;
 
 #[cfg(windows)]
 mod windows_tunnel_service;
@@ -42,7 +45,15 @@ fn main() {
         return;
     }
 
-    windows_service::run();
+    if args.len() == 2 && args[1] == "/console" {
+        windows_service::run();
+        return;
+    }
+
+    if let Err(e) = windows_control_service::run() {
+        eprintln!("[deliriuum] service Windows SCM : {e}");
+        std::process::exit(1);
+    }
 }
 
 

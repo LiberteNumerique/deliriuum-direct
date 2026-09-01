@@ -1,0 +1,612 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9F6D72953047061A00E2410A /* DeliriuumMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72943047061A00E2410A /* DeliriuumMacApp.swift */; };
+		9F6D72973047061A00E2410A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72963047061A00E2410A /* ContentView.swift */; };
+		9F6D72993047061B00E2410A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F6D72983047061B00E2410A /* Assets.xcassets */; };
+		9F6D729C3047061B00E2410A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F6D729B3047061B00E2410A /* Preview Assets.xcassets */; };
+		9F6D72AA30470BD900E2410A /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F6D72A930470BD900E2410A /* NetworkExtension.framework */; };
+		9F6D72AD30470BD900E2410A /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72AC30470BD900E2410A /* PacketTunnelProvider.swift */; };
+		9F6D72B230470BD900E2410A /* DeliriuumPacketTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9F6D72B830470DAC00E2410A /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72B730470DAC00E2410A /* VPNManager.swift */; };
+		9F6D72BB304713D800E2410A /* WireGuardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9F6D72BA304713D800E2410A /* WireGuardKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9F6D72B030470BD900E2410A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F6D72893047061A00E2410A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F6D72A630470BD900E2410A;
+			remoteInfo = DeliriuumPacketTunnel;
+		};
+		9F6D72C03047154400E2410A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F6D72893047061A00E2410A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F6D72BC3047147400E2410A;
+			remoteInfo = WireGuardGoBridgemacOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9F6D72B630470BD900E2410A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9F6D72B230470BD900E2410A /* DeliriuumPacketTunnel.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		9F6D72913047061A00E2410A /* DeliriuumMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DeliriuumMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F6D72943047061A00E2410A /* DeliriuumMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliriuumMacApp.swift; sourceTree = "<group>"; };
+		9F6D72963047061A00E2410A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9F6D72983047061B00E2410A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9F6D729B3047061B00E2410A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		9F6D729D3047061B00E2410A /* DeliriuumMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DeliriuumMac.entitlements; sourceTree = "<group>"; };
+		9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DeliriuumPacketTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F6D72A930470BD900E2410A /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		9F6D72AC30470BD900E2410A /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
+		9F6D72AE30470BD900E2410A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9F6D72AF30470BD900E2410A /* DeliriuumPacketTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DeliriuumPacketTunnel.entitlements; sourceTree = "<group>"; };
+		9F6D72B730470DAC00E2410A /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9F6D728E3047061A00E2410A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F6D72A430470BD900E2410A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F6D72BB304713D800E2410A /* WireGuardKit in Frameworks */,
+				9F6D72AA30470BD900E2410A /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9F6D72883047061A00E2410A = {
+			isa = PBXGroup;
+			children = (
+				9F6D72933047061A00E2410A /* DeliriuumMac */,
+				9F6D72AB30470BD900E2410A /* DeliriuumPacketTunnel */,
+				9F6D72A830470BD900E2410A /* Frameworks */,
+				9F6D72923047061A00E2410A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9F6D72923047061A00E2410A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9F6D72913047061A00E2410A /* DeliriuumMac.app */,
+				9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9F6D72933047061A00E2410A /* DeliriuumMac */ = {
+			isa = PBXGroup;
+			children = (
+				9F6D72943047061A00E2410A /* DeliriuumMacApp.swift */,
+				9F6D72963047061A00E2410A /* ContentView.swift */,
+				9F6D72983047061B00E2410A /* Assets.xcassets */,
+				9F6D729D3047061B00E2410A /* DeliriuumMac.entitlements */,
+				9F6D729A3047061B00E2410A /* Preview Content */,
+				9F6D72B730470DAC00E2410A /* VPNManager.swift */,
+			);
+			path = DeliriuumMac;
+			sourceTree = "<group>";
+		};
+		9F6D729A3047061B00E2410A /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				9F6D729B3047061B00E2410A /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		9F6D72A830470BD900E2410A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9F6D72A930470BD900E2410A /* NetworkExtension.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9F6D72AB30470BD900E2410A /* DeliriuumPacketTunnel */ = {
+			isa = PBXGroup;
+			children = (
+				9F6D72AC30470BD900E2410A /* PacketTunnelProvider.swift */,
+				9F6D72AE30470BD900E2410A /* Info.plist */,
+				9F6D72AF30470BD900E2410A /* DeliriuumPacketTunnel.entitlements */,
+			);
+			path = DeliriuumPacketTunnel;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		9F6D72BC3047147400E2410A /* WireGuardGoBridgemacOS */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 9F6D72BD3047147400E2410A /* Build configuration list for PBXLegacyTarget "WireGuardGoBridgemacOS" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "/Users/emmanuelle/Downloads/ALN/PROJECTS/DELIRIUUM/deliriuum-direct/macos/wireguard-apple/Sources/WireGuardKitGo";
+			dependencies = (
+			);
+			name = WireGuardGoBridgemacOS;
+			passBuildSettingsInEnvironment = 1;
+			productName = WireGuardGoBridgemacOS;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXNativeTarget section */
+		9F6D72903047061A00E2410A /* DeliriuumMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F6D72A03047061B00E2410A /* Build configuration list for PBXNativeTarget "DeliriuumMac" */;
+			buildPhases = (
+				9F6D728D3047061A00E2410A /* Sources */,
+				9F6D728E3047061A00E2410A /* Frameworks */,
+				9F6D728F3047061A00E2410A /* Resources */,
+				9F6D72B630470BD900E2410A /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9F6D72B130470BD900E2410A /* PBXTargetDependency */,
+			);
+			name = DeliriuumMac;
+			productName = DeliriuumMac;
+			productReference = 9F6D72913047061A00E2410A /* DeliriuumMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9F6D72A630470BD900E2410A /* DeliriuumPacketTunnel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F6D72B330470BD900E2410A /* Build configuration list for PBXNativeTarget "DeliriuumPacketTunnel" */;
+			buildPhases = (
+				9F6D72A330470BD900E2410A /* Sources */,
+				9F6D72A430470BD900E2410A /* Frameworks */,
+				9F6D72A530470BD900E2410A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9F6D72C13047154400E2410A /* PBXTargetDependency */,
+			);
+			name = DeliriuumPacketTunnel;
+			packageProductDependencies = (
+				9F6D72BA304713D800E2410A /* WireGuardKit */,
+			);
+			productName = DeliriuumPacketTunnel;
+			productReference = 9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9F6D72893047061A00E2410A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					9F6D72903047061A00E2410A = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					9F6D72A630470BD900E2410A = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					9F6D72BC3047147400E2410A = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 9F6D728C3047061A00E2410A /* Build configuration list for PBXProject "DeliriuumMac" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9F6D72883047061A00E2410A;
+			packageReferences = (
+				9F6D72B9304713D800E2410A /* XCLocalSwiftPackageReference "../wireguard-apple" */,
+			);
+			productRefGroup = 9F6D72923047061A00E2410A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9F6D72903047061A00E2410A /* DeliriuumMac */,
+				9F6D72A630470BD900E2410A /* DeliriuumPacketTunnel */,
+				9F6D72BC3047147400E2410A /* WireGuardGoBridgemacOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9F6D728F3047061A00E2410A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F6D729C3047061B00E2410A /* Preview Assets.xcassets in Resources */,
+				9F6D72993047061B00E2410A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F6D72A530470BD900E2410A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9F6D728D3047061A00E2410A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F6D72973047061A00E2410A /* ContentView.swift in Sources */,
+				9F6D72B830470DAC00E2410A /* VPNManager.swift in Sources */,
+				9F6D72953047061A00E2410A /* DeliriuumMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F6D72A330470BD900E2410A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F6D72AD30470BD900E2410A /* PacketTunnelProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9F6D72B130470BD900E2410A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9F6D72A630470BD900E2410A /* DeliriuumPacketTunnel */;
+			targetProxy = 9F6D72B030470BD900E2410A /* PBXContainerItemProxy */;
+		};
+		9F6D72C13047154400E2410A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9F6D72BC3047147400E2410A /* WireGuardGoBridgemacOS */;
+			targetProxy = 9F6D72C03047154400E2410A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		9F6D729E3047061B00E2410A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		9F6D729F3047061B00E2410A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		9F6D72A13047061B00E2410A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DeliriuumMac/DeliriuumMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"DeliriuumMac/Preview Content\"";
+				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deliriuum.direct;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9F6D72A23047061B00E2410A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DeliriuumMac/DeliriuumMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"DeliriuumMac/Preview Content\"";
+				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deliriuum.direct;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9F6D72B430470BD900E2410A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DeliriuumPacketTunnel/DeliriuumPacketTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DeliriuumPacketTunnel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DeliriuumPacketTunnel;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deliriuum.direct.PacketTunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9F6D72B530470BD900E2410A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DeliriuumPacketTunnel/DeliriuumPacketTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DeliriuumPacketTunnel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DeliriuumPacketTunnel;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.deliriuum.direct.PacketTunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9F6D72BE3047147400E2410A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = FS4GV84BV6;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		9F6D72BF3047147400E2410A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = FS4GV84BV6;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9F6D728C3047061A00E2410A /* Build configuration list for PBXProject "DeliriuumMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F6D729E3047061B00E2410A /* Debug */,
+				9F6D729F3047061B00E2410A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F6D72A03047061B00E2410A /* Build configuration list for PBXNativeTarget "DeliriuumMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F6D72A13047061B00E2410A /* Debug */,
+				9F6D72A23047061B00E2410A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F6D72B330470BD900E2410A /* Build configuration list for PBXNativeTarget "DeliriuumPacketTunnel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F6D72B430470BD900E2410A /* Debug */,
+				9F6D72B530470BD900E2410A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F6D72BD3047147400E2410A /* Build configuration list for PBXLegacyTarget "WireGuardGoBridgemacOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F6D72BE3047147400E2410A /* Debug */,
+				9F6D72BF3047147400E2410A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		9F6D72B9304713D800E2410A /* XCLocalSwiftPackageReference "../wireguard-apple" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../wireguard-apple";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9F6D72BA304713D800E2410A /* WireGuardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WireGuardKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 9F6D72893047061A00E2410A /* Project object */;
+}

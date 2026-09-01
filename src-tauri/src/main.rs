@@ -666,7 +666,7 @@ fn open_url(path: String, app: tauri::AppHandle) {
 
 // ============================================================ tunnel
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 mod tunnel {
     use super::Result;
     use std::io::{BufRead, BufReader, Write};
@@ -742,6 +742,89 @@ mod tunnel {
 
 // ============================================================ entrÃ©e
 
+
+
+#[cfg(target_os = "macos")]
+mod tunnel {
+    use super::Result;
+    use std::ffi::{CStr, CString};
+    use std::os::raw::c_char;
+
+    unsafe extern "C" {
+        fn deliriuum_vpn_up(
+            config: *const c_char,
+            error_buffer: *mut c_char,
+            error_buffer_len: usize,
+        ) -> i32;
+
+        fn deliriuum_vpn_down() -> i32;
+        fn deliriuum_vpn_status() -> i32;
+    }
+
+    pub struct Status {
+        pub up: bool,
+        pub blocked: bool,
+        pub rx: u64,
+        pub tx: u64,
+    }
+
+    #[derive(Default)]
+    pub struct Backend;
+
+    impl Backend {
+        pub fn up(&mut self, config: String) -> Result<()> {
+            let config = CString::new(config)
+                .map_err(|_| "Configuration WireGuard invalide.".to_string())?;
+
+            let mut error_buffer = vec![0u8; 2048];
+
+            let result = unsafe {
+                deliriuum_vpn_up(
+                    config.as_ptr(),
+                    error_buffer.as_mut_ptr() as *mut c_char,
+                    error_buffer.len(),
+                )
+            };
+
+            if result == 0 {
+                return Ok(());
+            }
+
+            let message = unsafe {
+                CStr::from_ptr(error_buffer.as_ptr() as *const c_char)
+                    .to_string_lossy()
+                    .into_owned()
+            };
+
+            if message.is_empty() {
+                Err("Impossible de démarrer le VPN macOS.".to_string())
+            } else {
+                Err(message)
+            }
+        }
+
+        pub fn down(&mut self) -> Result<(u64, u64)> {
+            let result = unsafe { deliriuum_vpn_down() };
+
+            if result == 0 {
+                Ok((0, 0))
+            } else {
+                Err("Impossible d'arrêter le VPN macOS.".to_string())
+            }
+        }
+
+        pub fn status(&self) -> Result<Status> {
+            let state = unsafe { deliriuum_vpn_status() };
+
+            Ok(Status {
+                up: state == 1,
+                blocked: false,
+                rx: 0,
+                tx: 0,
+            })
+        }
+    }
+}
 
 #[cfg(windows)]
 mod tunnel {

@@ -2,9 +2,13 @@
 name = "deliriuum-direct"
 version = "0.1.0"
 edition = "2021"
-description = "Deliriuum Direct — protection de tout l'appareil"
+description = "VPN gratuit — hébergé en Islande chez 1984.is"
 authors = ["Alliance pour les Libertés Numériques"]
 license = "GPL-3.0-or-later"
+[[bin]]
+name = "deliriuum-direct-app"
+path = "src/main.rs"
+
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

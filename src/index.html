@@ -780,6 +780,7 @@ async function openDoc(file, kind) {
   $('#modal').classList.add('on');
   try {
     const r = await fetch(`legal/${file}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     box.innerHTML = await r.text();
   } catch {
     box.innerHTML = '<p>Ce document n\'a pas pu être chargé.</p>';

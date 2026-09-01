@@ -1,15 +1,15 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+﻿#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//! Deliriuum Direct — client de bureau.
+//! Deliriuum Direct â€” client de bureau.
 //!
-//! Câblé sur la même API que l'application Android : master.deliriuum.com,
+//! CÃ¢blÃ© sur la mÃªme API que l'application Android : master.deliriuum.com,
 //! jetons access/refresh, appareils puis sessions.
 //!
-//! La clé privée WireGuard est générée ici et stockée dans le trousseau du
-//! système. Elle ne part jamais sur le réseau : seule la publique est envoyée.
+//! La clÃ© privÃ©e WireGuard est gÃ©nÃ©rÃ©e ici et stockÃ©e dans le trousseau du
+//! systÃ¨me. Elle ne part jamais sur le rÃ©seau : seule la publique est envoyÃ©e.
 //!
-//! État : le parcours complet est câblé, le tunnel est simulé.
-//! Le seul endroit à remplacer est `tunnel::Backend`.
+//! Ã‰tat : le parcours complet est cÃ¢blÃ©, le tunnel est simulÃ©.
+//! Le seul endroit Ã  remplacer est `tunnel::Backend`.
 
 use std::sync::Mutex;
 
@@ -23,10 +23,10 @@ const MASTER: &str = "https://master.deliriuum.com";
 const SITE: &str = "https://deliriuum.com";
 const KEYRING: &str = "com.deliriuum.direct";
 
-/// Les erreurs remontées au JavaScript sont des phrases affichables telles quelles.
+/// Les erreurs remontÃ©es au JavaScript sont des phrases affichables telles quelles.
 type Result<T> = std::result::Result<T, String>;
 
-// ============================================================ état
+// ============================================================ Ã©tat
 
 #[derive(Default)]
 struct App {
@@ -44,8 +44,8 @@ struct Tokens {
 // ============================================================ trousseau
 
 /// Dossier de configuration de l'application, hors trousseau.
-/// Ce qui n'est pas un secret n'a rien à faire dans le trousseau : chaque
-/// entrée supplémentaire est une demande d'autorisation de plus pour l'utilisateur.
+/// Ce qui n'est pas un secret n'a rien Ã  faire dans le trousseau : chaque
+/// entrÃ©e supplÃ©mentaire est une demande d'autorisation de plus pour l'utilisateur.
 fn config_path(name: &str) -> Option<std::path::PathBuf> {
     let dir = if cfg!(target_os = "windows") {
         std::path::PathBuf::from(std::env::var("APPDATA").ok()?)
@@ -84,7 +84,7 @@ fn cfg_del(name: &str) {
 }
 
 fn kr(key: &str) -> Result<keyring::Entry> {
-    keyring::Entry::new(KEYRING, key).map_err(|_| "Trousseau du système inaccessible.".into())
+    keyring::Entry::new(KEYRING, key).map_err(|_| "Trousseau du systÃ¨me inaccessible.".into())
 }
 
 fn kr_get(key: &str) -> Option<String> {
@@ -105,15 +105,15 @@ fn kr_del(key: &str) {
 
 // ============================================================ appels HTTP
 
-/// Extrait le champ `detail` renvoyé par le master, sinon un message générique.
+/// Extrait le champ `detail` renvoyÃ© par le master, sinon un message gÃ©nÃ©rique.
 fn detail_of(status: u16, body: &str) -> String {
     serde_json::from_str::<Value>(body)
         .ok()
         .and_then(|v| v["detail"].as_str().map(str::to_string))
         .unwrap_or_else(|| match status {
             401 => "E-mail ou mot de passe incorrect.".into(),
-            409 => "Ce compte existe déjà.".into(),
-            429 => "Trop de tentatives. Réessaie dans quelques minutes.".into(),
+            409 => "Ce compte existe dÃ©jÃ .".into(),
+            429 => "Trop de tentatives. RÃ©essaie dans quelques minutes.".into(),
             _ => format!("Erreur du serveur ({status})."),
         })
 }
@@ -135,7 +135,7 @@ async fn send(
     let res = req
         .send()
         .await
-        .map_err(|_| "Serveur injoignable. Vérifie ta connexion.".to_string())?;
+        .map_err(|_| "Serveur injoignable. VÃ©rifie ta connexion.".to_string())?;
 
     let status = res.status().as_u16();
     let text = res.text().await.unwrap_or_default();
@@ -149,11 +149,11 @@ impl App {
             .unwrap()
             .as_ref()
             .map(|t| t.access.clone())
-            .ok_or_else(|| "Ta session a expiré. Reconnecte-toi.".into())
+            .ok_or_else(|| "Ta session a expirÃ©. Reconnecte-toi.".into())
     }
 
-    /// Seul le jeton de rafraîchissement est persisté. L'accès, de courte durée,
-    /// reste en mémoire : une entrée de trousseau en moins, sans rien perdre.
+    /// Seul le jeton de rafraÃ®chissement est persistÃ©. L'accÃ¨s, de courte durÃ©e,
+    /// reste en mÃ©moire : une entrÃ©e de trousseau en moins, sans rien perdre.
     fn store(&self, t: Tokens) {
         kr_set("refresh-token", &t.refresh);
         *self.tokens.lock().unwrap() = Some(t);
@@ -173,7 +173,7 @@ impl App {
             .unwrap()
             .as_ref()
             .map(|t| t.refresh.clone())
-            .ok_or_else(|| "Ta session a expiré. Reconnecte-toi.".to_string())?;
+            .ok_or_else(|| "Ta session a expirÃ©. Reconnecte-toi.".to_string())?;
 
         let (status, body) = send(
             reqwest::Method::POST,
@@ -185,13 +185,13 @@ impl App {
 
         if status == 401 || status == 403 {
             self.clear();
-            return Err("Ta session a expiré. Reconnecte-toi.".into());
+            return Err("Ta session a expirÃ©. Reconnecte-toi.".into());
         }
         if !(200..300).contains(&status) {
             return Err(detail_of(status, &body));
         }
 
-        let v: Value = serde_json::from_str(&body).map_err(|_| "Réponse illisible.".to_string())?;
+        let v: Value = serde_json::from_str(&body).map_err(|_| "RÃ©ponse illisible.".to_string())?;
         self.store(Tokens {
             access: v["access_token"].as_str().unwrap_or_default().to_string(),
             refresh: v["refresh_token"].as_str().unwrap_or_default().to_string(),
@@ -199,7 +199,7 @@ impl App {
         Ok(())
     }
 
-    /// Requête authentifiée : sur 401, renouvelle une fois puis rejoue.
+    /// RequÃªte authentifiÃ©e : sur 401, renouvelle une fois puis rejoue.
     async fn auth_call(
         &self,
         method: reqwest::Method,
@@ -226,18 +226,18 @@ impl App {
     }
 }
 
-// ============================================================ clés et appareil
+// ============================================================ clÃ©s et appareil
 
-/// Génère la paire au premier lancement, la conserve ensuite.
+/// GÃ©nÃ¨re la paire au premier lancement, la conserve ensuite.
 fn keypair() -> Result<(StaticSecret, String)> {
     let secret = match kr_get("wireguard-private-key") {
         Some(stored) => {
             let raw = B64
                 .decode(stored)
-                .map_err(|_| "La clé enregistrée est illisible.".to_string())?;
+                .map_err(|_| "La clÃ© enregistrÃ©e est illisible.".to_string())?;
             let bytes: [u8; 32] = raw
                 .try_into()
-                .map_err(|_| "La clé enregistrée est illisible.".to_string())?;
+                .map_err(|_| "La clÃ© enregistrÃ©e est illisible.".to_string())?;
             StaticSecret::from(bytes)
         }
         None => {
@@ -250,7 +250,7 @@ fn keypair() -> Result<(StaticSecret, String)> {
     Ok((secret, public))
 }
 
-/// Nom lisible dans « Mes appareils », côté master.
+/// Nom lisible dans Â« Mes appareils Â», cÃ´tÃ© master.
 fn device_name() -> String {
     let host = std::process::Command::new("hostname")
         .output()
@@ -266,24 +266,24 @@ fn device_name() -> String {
         other => other,
     };
     match host {
-        Some(h) => format!("{h} · Direct {os}"),
-        None => format!("Deliriuum Direct · {os}"),
+        Some(h) => format!("{h} Â· Direct {os}"),
+        None => format!("Deliriuum Direct Â· {os}"),
     }
 }
 
-/// Génère une nouvelle paire et remplace celle du trousseau.
+/// GÃ©nÃ¨re une nouvelle paire et remplace celle du trousseau.
 fn rotate_keypair() -> Result<(StaticSecret, String)> {
     kr_del("wireguard-private-key");
     keypair()
 }
 
-/// Résout l'appareil de cette machine côté master, sans jamais montrer de
-/// conflit à l'utilisateur.
+/// RÃ©sout l'appareil de cette machine cÃ´tÃ© master, sans jamais montrer de
+/// conflit Ã  l'utilisateur.
 ///
-/// Le master indexe les appareils par clé publique. Si le fichier local
-/// d'identifiant est perdu — réinstallation, nouveau profil, dossier effacé —
-/// une création naïve renverrait « clé déjà utilisée ». On cherche donc
-/// d'abord l'appareil par sa clé, et on ne crée qu'en dernier recours.
+/// Le master indexe les appareils par clÃ© publique. Si le fichier local
+/// d'identifiant est perdu â€” rÃ©installation, nouveau profil, dossier effacÃ© â€”
+/// une crÃ©ation naÃ¯ve renverrait Â« clÃ© dÃ©jÃ  utilisÃ©e Â». On cherche donc
+/// d'abord l'appareil par sa clÃ©, et on ne crÃ©e qu'en dernier recours.
 async fn ensure_device(app: &App) -> Result<(StaticSecret, String)> {
     let (secret, public) = keypair()?;
 
@@ -298,7 +298,7 @@ async fn ensure_device(app: &App) -> Result<(StaticSecret, String)> {
         cfg_del("device-id");
     }
 
-    // 2. Sinon, notre clé publique est peut-être déjà enregistrée.
+    // 2. Sinon, notre clÃ© publique est peut-Ãªtre dÃ©jÃ  enregistrÃ©e.
     if let Some(found) = list
         .iter()
         .find(|d| d["public_key"].as_str() == Some(public.as_str()))
@@ -308,7 +308,7 @@ async fn ensure_device(app: &App) -> Result<(StaticSecret, String)> {
         return Ok((secret, found.to_string()));
     }
 
-    // 3. Création.
+    // 3. CrÃ©ation.
     match app
         .auth_call(
             reqwest::Method::POST,
@@ -320,15 +320,15 @@ async fn ensure_device(app: &App) -> Result<(StaticSecret, String)> {
         Ok(created) => {
             let id = created["id"]
                 .as_str()
-                .ok_or("Le serveur n'a pas renvoyé d'identifiant d'appareil.")?
+                .ok_or("Le serveur n'a pas renvoyÃ© d'identifiant d'appareil.")?
                 .to_string();
             cfg_set("device-id", &id);
             Ok((secret, id))
         }
 
-        // 4. Refus malgré tout : la clé appartient à un autre compte, ou à un
-        //    appareil que ce compte ne voit pas. On repart d'une clé neuve
-        //    plutôt que d'afficher un conflit incompréhensible.
+        // 4. Refus malgrÃ© tout : la clÃ© appartient Ã  un autre compte, ou Ã  un
+        //    appareil que ce compte ne voit pas. On repart d'une clÃ© neuve
+        //    plutÃ´t que d'afficher un conflit incomprÃ©hensible.
         Err(_) => {
             let (secret, public) = rotate_keypair()?;
             let created = app
@@ -340,7 +340,7 @@ async fn ensure_device(app: &App) -> Result<(StaticSecret, String)> {
                 .await?;
             let id = created["id"]
                 .as_str()
-                .ok_or("Le serveur n'a pas renvoyé d'identifiant d'appareil.")?
+                .ok_or("Le serveur n'a pas renvoyÃ© d'identifiant d'appareil.")?
                 .to_string();
             cfg_set("device-id", &id);
             Ok((secret, id))
@@ -376,7 +376,7 @@ async fn login(email: String, password: String, app: State<'_, App>) -> Result<M
         return Err(detail_of(status, &body));
     }
 
-    let v: Value = serde_json::from_str(&body).map_err(|_| "Réponse illisible.".to_string())?;
+    let v: Value = serde_json::from_str(&body).map_err(|_| "RÃ©ponse illisible.".to_string())?;
     app.store(Tokens {
         access: v["access_token"].as_str().unwrap_or_default().to_string(),
         refresh: v["refresh_token"].as_str().unwrap_or_default().to_string(),
@@ -389,9 +389,9 @@ async fn login(email: String, password: String, app: State<'_, App>) -> Result<M
     })
 }
 
-/// L'inscription ne renvoie pas de jeton : le master crée un compte à vérifier
-/// par e-mail. On tente ensuite une connexion, qui échouera tant que le compte
-/// n'est pas validé — c'est ce que l'écran de vérification annonce.
+/// L'inscription ne renvoie pas de jeton : le master crÃ©e un compte Ã  vÃ©rifier
+/// par e-mail. On tente ensuite une connexion, qui Ã©chouera tant que le compte
+/// n'est pas validÃ© â€” c'est ce que l'Ã©cran de vÃ©rification annonce.
 #[tauri::command]
 async fn register(email: String, password: String, app: State<'_, App>) -> Result<Me> {
     let (status, body) = send(
@@ -429,7 +429,7 @@ async fn resend_verification(email: String) -> Result<()> {
     }
 }
 
-/// Envoie le lien de réinitialisation. Le master renvoie un message `detail`
+/// Envoie le lien de rÃ©initialisation. Le master renvoie un message `detail`
 /// volontairement neutre, qui ne dit pas si le compte existe.
 #[tauri::command]
 async fn forgot_password(email: String) -> Result<String> {
@@ -455,7 +455,7 @@ async fn forgot_password(email: String) -> Result<String> {
 async fn session(app: State<'_, App>) -> Result<Option<Me>> {
     if app.tokens.lock().unwrap().is_none() {
         // Au lancement, seul le refresh est disponible : on le troque contre
-        // une paire fraîche. Un seul accès au trousseau par session.
+        // une paire fraÃ®che. Un seul accÃ¨s au trousseau par session.
         match kr_get("refresh-token") {
             Some(refresh) => {
                 *app.tokens.lock().unwrap() = Some(Tokens {
@@ -483,8 +483,8 @@ async fn session(app: State<'_, App>) -> Result<Option<Me>> {
 async fn connect(app: State<'_, App>) -> Result<Connected> {
     let (secret, device_id) = ensure_device(&app).await?;
 
-    // Une session peut rester ouverte côté master si le client a été tué sans
-    // se déconnecter. On la ferme puis on rejoue, une seule fois.
+    // Une session peut rester ouverte cÃ´tÃ© master si le client a Ã©tÃ© tuÃ© sans
+    // se dÃ©connecter. On la ferme puis on rejoue, une seule fois.
     let cfg = match app
         .auth_call(
             reqwest::Method::POST,
@@ -510,7 +510,7 @@ async fn connect(app: State<'_, App>) -> Result<Connected> {
             )
             .await
             .map_err(|second| {
-                // Si le second échec dit autre chose, c'est lui qui informe.
+                // Si le second Ã©chec dit autre chose, c'est lui qui informe.
                 if second == first { first } else { second }
             })?
         }
@@ -568,7 +568,7 @@ async fn connect(app: State<'_, App>) -> Result<Connected> {
     }
     cfg_set("node-name", &host);
 
-    // L'IP publique de sortie n'est pas renvoyée par le master ; l'interface
+    // L'IP publique de sortie n'est pas renvoyÃ©e par le master ; l'interface
     // affiche alors le nom du serveur seul.
     Ok(Connected { node: host.clone(), ip: String::new() })
 }
@@ -582,7 +582,7 @@ async fn disconnect(app: State<'_, App>) -> Result<()> {
         .clone()
         .or_else(|| cfg_get("session-id"));
 
-    // Le tunnel tombe d'abord : la session côté master est secondaire.
+    // Le tunnel tombe d'abord : la session cÃ´tÃ© master est secondaire.
     let (rx, tx) = app.tunnel.lock().unwrap().down()?;
 
     if let Some(id) = id {
@@ -601,14 +601,14 @@ async fn disconnect(app: State<'_, App>) -> Result<()> {
 
 #[derive(Serialize)]
 struct Protection {
-    /// "off" : rien n'est monté. "on" : tunnel actif.
-    /// "blocked" : le tunnel est tombé et le pare-feu retient tout le trafic.
+    /// "off" : rien n'est montÃ©. "on" : tunnel actif.
+    /// "blocked" : le tunnel est tombÃ© et le pare-feu retient tout le trafic.
     state: &'static str,
     node: String,
 }
 
-/// Le tunnel survit à la fermeture de la fenêtre : au lancement, le client
-/// demande au service ce qui tourne réellement plutôt que de repartir de zéro.
+/// Le tunnel survit Ã  la fermeture de la fenÃªtre : au lancement, le client
+/// demande au service ce qui tourne rÃ©ellement plutÃ´t que de repartir de zÃ©ro.
 #[tauri::command]
 fn tunnel_status(app: State<'_, App>) -> Protection {
     let node = cfg_get("node-name").unwrap_or_else(|| "node1".into());
@@ -639,7 +639,7 @@ async fn logout(app: State<'_, App>) -> Result<()> {
     Ok(())
 }
 
-/// Suppression définitive, confirmée par le mot de passe comme dans l'app mobile.
+/// Suppression dÃ©finitive, confirmÃ©e par le mot de passe comme dans l'app mobile.
 #[tauri::command]
 async fn delete_account(password: String, app: State<'_, App>) -> Result<()> {
     app.auth_call(
@@ -652,7 +652,7 @@ async fn delete_account(password: String, app: State<'_, App>) -> Result<()> {
     let _ = app.tunnel.lock().unwrap().down();
     cfg_del("session-id");
     app.clear();
-    // La clé et l'appareil n'ont plus d'existence côté serveur.
+    // La clÃ© et l'appareil n'ont plus d'existence cÃ´tÃ© serveur.
     kr_del("wireguard-private-key");
     cfg_del("device-id");
     Ok(())
@@ -666,6 +666,7 @@ fn open_url(path: String, app: tauri::AppHandle) {
 
 // ============================================================ tunnel
 
+#[cfg(unix)]
 mod tunnel {
     use super::Result;
     use std::io::{BufRead, BufReader, Write};
@@ -675,17 +676,17 @@ mod tunnel {
 
     pub struct Status {
         pub up: bool,
-        /// Le pare-feu bloque tout : le tunnel est tombé sans être coupé.
+        /// Le pare-feu bloque tout : le tunnel est tombÃ© sans Ãªtre coupÃ©.
         pub blocked: bool,
         pub rx: u64,
         pub tx: u64,
     }
 
-    /// Une requête, une réponse. Le service détient le tunnel : ce client
-    /// n'a aucun privilège et ne fait que lui parler.
+    /// Une requÃªte, une rÃ©ponse. Le service dÃ©tient le tunnel : ce client
+    /// n'a aucun privilÃ¨ge et ne fait que lui parler.
     fn call(req: serde_json::Value) -> Result<serde_json::Value> {
         let stream = UnixStream::connect(SOCKET).map_err(|_| {
-            "Le service Deliriuum n'est pas actif. Réinstalle-le ou redémarre l'ordinateur."
+            "Le service Deliriuum n'est pas actif. RÃ©installe-le ou redÃ©marre l'ordinateur."
                 .to_string()
         })?;
 
@@ -697,17 +698,17 @@ mod tunnel {
         let mut line = String::new();
         BufReader::new(stream)
             .read_line(&mut line)
-            .map_err(|_| "Le service n'a pas répondu.".to_string())?;
+            .map_err(|_| "Le service n'a pas rÃ©pondu.".to_string())?;
 
         let v: serde_json::Value =
-            serde_json::from_str(&line).map_err(|_| "Réponse illisible du service.".to_string())?;
+            serde_json::from_str(&line).map_err(|_| "RÃ©ponse illisible du service.".to_string())?;
 
         if v["ok"].as_bool() == Some(true) {
             Ok(v)
         } else {
             Err(v["error"]
                 .as_str()
-                .unwrap_or("Le tunnel n'a pas pu être établi.")
+                .unwrap_or("Le tunnel n'a pas pu Ãªtre Ã©tabli.")
                 .to_string())
         }
     }
@@ -720,7 +721,7 @@ mod tunnel {
             call(serde_json::json!({ "cmd": "up", "config": config })).map(|_| ())
         }
 
-        /// Renvoie les compteurs relevés juste avant la coupure, que le client
+        /// Renvoie les compteurs relevÃ©s juste avant la coupure, que le client
         /// remonte ensuite au master.
         pub fn down(&mut self) -> Result<(u64, u64)> {
             let v = call(serde_json::json!({ "cmd": "down" }))?;
@@ -739,8 +740,86 @@ mod tunnel {
     }
 }
 
-// ============================================================ entrée
+// ============================================================ entrÃ©e
 
+
+#[cfg(windows)]
+mod tunnel {
+    use super::Result;
+    use serde_json::Value;
+    use std::fs::OpenOptions;
+    use std::io::{BufRead, BufReader, Write};
+
+    const PIPE: &str = r"\\.\pipe\deliriuum-direct";
+
+    pub struct Status {
+        pub up: bool,
+        pub blocked: bool,
+        pub rx: u64,
+        pub tx: u64,
+    }
+
+    fn call(req: serde_json::Value) -> Result<Value> {
+        let mut pipe = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(PIPE)
+            .map_err(|_| "Le service Deliriuum Direct n'est pas actif.".to_string())?;
+
+        let request = format!("{req}\n");
+        pipe.write_all(request.as_bytes())
+            .map_err(|_| "Impossible d'envoyer la commande.".to_string())?;
+        pipe.flush()
+            .map_err(|_| "Impossible d'envoyer la commande.".to_string())?;
+
+        let mut reader = BufReader::new(pipe);
+        let mut line = String::new();
+        reader.read_line(&mut line)
+            .map_err(|_| "Impossible de lire la réponse.".to_string())?;
+
+        let value: Value = serde_json::from_str(&line)
+            .map_err(|_| "Réponse invalide du service.".to_string())?;
+
+        if value["ok"].as_bool() == Some(false) {
+            return Err(value["error"]
+                .as_str()
+                .unwrap_or("Erreur du service Deliriuum.")
+                .to_string());
+        }
+
+        Ok(value)
+    }
+
+    #[derive(Default)]
+    pub struct Backend;
+
+    impl Backend {
+        pub fn up(&mut self, config: String) -> Result<()> {
+            call(serde_json::json!({
+                "cmd": "up",
+                "config": config
+            })).map(|_| ())
+        }
+
+        pub fn down(&mut self) -> Result<(u64, u64)> {
+            let v = call(serde_json::json!({ "cmd": "down" }))?;
+            Ok((
+                v["rx"].as_u64().unwrap_or(0),
+                v["tx"].as_u64().unwrap_or(0),
+            ))
+        }
+
+        pub fn status(&self) -> Result<Status> {
+            let v = call(serde_json::json!({ "cmd": "status" }))?;
+            Ok(Status {
+                up: v["up"].as_bool().unwrap_or(false),
+                blocked: v["blocked"].as_bool().unwrap_or(false),
+                rx: v["rx"].as_u64().unwrap_or(0),
+                tx: v["tx"].as_u64().unwrap_or(0),
+            })
+        }
+    }
+}
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -758,9 +837,14 @@ fn main() {
             delete_account,
             open_url
         ])
-        // Fermer la fenêtre ne coupe pas la protection : le service garde le
-        // tunnel, comme chez Mullvad ou Proton. Seul un clic sur « Protégé »
-        // ou la suppression du compte l'arrêtent.
+        // Fermer la fenÃªtre ne coupe pas la protection : le service garde le
+        // tunnel, comme chez Mullvad ou Proton. Seul un clic sur Â« ProtÃ©gÃ© Â»
+        // ou la suppression du compte l'arrÃªtent.
         .run(tauri::generate_context!())
-        .expect("Deliriuum Direct n'a pas pu démarrer");
+        .expect("Deliriuum Direct n'a pas pu dÃ©marrer");
 }
+
+
+
+
+

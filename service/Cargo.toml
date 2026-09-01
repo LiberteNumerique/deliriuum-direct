@@ -1,4 +1,4 @@
-[package]
+﻿[package]
 name = "deliriuum-direct-service"
 version = "0.1.0"
 edition = "2021"
@@ -7,13 +7,36 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 serde_json = "1"
+base64 = "0.22"
+
+[target.'cfg(unix)'.dependencies]
 libc = "0.2"
 boringtun = { version = "0.6", default-features = false }
-# Version imposée par boringtun 0.6 : elle épingle cette candidate précise.
 x25519-dalek = { version = "=2.0.0-rc.3", features = ["static_secrets"] }
-base64 = "0.22"
+
+[target.'cfg(windows)'.dependencies]
+wintun = "0.5.1"
+
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_System_Memory",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Pipes",
+    "Win32_System_IO",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Services",
+] }
 
 [profile.release]
 opt-level = "s"
 lto = true
 strip = true
+
+
+
+
+
+
+

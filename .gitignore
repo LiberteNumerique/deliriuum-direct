@@ -2,3 +2,13 @@ target/
 *.conf
 .DS_Store
 src-tauri/gen/
+
+# Fichiers temporaires / sauvegardes locales
+*.bak
+*.bak2
+*.bak-*
+*.before-*
+exe-icon.png
+
+# Dépôt WireGuard Windows cloné localement
+wireguard-windows/

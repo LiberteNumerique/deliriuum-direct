@@ -1,86 +1,264 @@
-//! Routage et kill-switch Linux pour Deliriuum Direct.
+//! Configuration réseau Linux de Deliriuum Direct.
 //!
-//! Outils utilisés :
-//!   - iproute2 (`ip`)
-//!   - nftables (`nft`)
-//!
-//! Le service tourne en root.
+//! Ce module :
+//! - conserve une route directe vers le serveur WireGuard,
+//! - envoie le trafic IPv4 dans le TUN,
+//! - active un kill-switch nftables,
+//! - restaure le réseau à la déconnexion.
 
-use std::process::Command;
+use std::fs;
+use std::io::Write;
+use std::net::{IpAddr, ToSocketAddrs};
+use std::process::{Command, Stdio};
 
-const STATE: &str = "/var/lib/deliriuum-direct/network-linux.json";
 const NFT_TABLE: &str = "deliriuum_direct";
+const STATE_DIR: &str = "/var/lib/deliriuum-direct";
+const STATE_FILE: &str = "/var/lib/deliriuum-direct/network-linux.state";
 
-fn sh(cmd: &str, args: &[&str]) -> Result<String, String> {
-    let out = Command::new(cmd)
+#[derive(Debug, Clone)]
+struct PhysicalRoute {
+    gateway: Option<String>,
+    iface: String,
+}
+
+#[derive(Debug, Clone)]
+struct Applied {
+    tunnel_iface: String,
+    physical_iface: String,
+    gateway: Option<String>,
+    endpoint_ip: String,
+    endpoint_port: u16,
+}
+
+fn command_output(program: &str, args: &[&str]) -> Result<String, String> {
+    let output = Command::new(program)
         .args(args)
         .output()
-        .map_err(|e| format!("{cmd} indisponible : {e}"))?;
+        .map_err(|e| format!("Impossible d'exécuter {program}: {e}"))?;
 
-    if out.status.success() {
-        Ok(String::from_utf8_lossy(&out.stdout).to_string())
-    } else {
-        Err(String::from_utf8_lossy(&out.stderr).trim().to_string())
+    if !output.status.success() {
+        return Err(format!(
+            "{} {} a échoué : {}",
+            program,
+            args.join(" "),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
     }
+
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
-fn endpoint_host(endpoint: &str) -> String {
+fn command_status(program: &str, args: &[&str]) -> Result<(), String> {
+    let output = Command::new(program)
+        .args(args)
+        .output()
+        .map_err(|e| format!("Impossible d'exécuter {program}: {e}"))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "{} {} a échoué : {}",
+            program,
+            args.join(" "),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+
+    Ok(())
+}
+
+fn nft_script(script: &str) -> Result<(), String> {
+    let mut child = Command::new("nft")
+        .args(["-f", "-"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Impossible de lancer nft : {e}"))?;
+
+    if let Some(stdin) = child.stdin.as_mut() {
+        stdin
+            .write_all(script.as_bytes())
+            .map_err(|e| format!("Impossible d'écrire les règles nftables : {e}"))?;
+    }
+
+    let output = child
+        .wait_with_output()
+        .map_err(|e| format!("Erreur nftables : {e}"))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "nftables a refusé les règles : {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+
+    Ok(())
+}
+
+fn endpoint_parts(endpoint: &str) -> Result<(String, u16), String> {
     if endpoint.starts_with('[') {
-        if let Some(end) = endpoint.find(']') {
-            return endpoint[1..end].to_string();
+        let end = endpoint
+            .find("]:")
+            .ok_or_else(|| format!("Endpoint WireGuard invalide : {endpoint}"))?;
+
+        let host = endpoint[1..end].to_string();
+        let port = endpoint[end + 2..]
+            .parse::<u16>()
+            .map_err(|_| format!("Port WireGuard invalide : {endpoint}"))?;
+
+        return Ok((host, port));
+    }
+
+    let (host, port) = endpoint
+        .rsplit_once(':')
+        .ok_or_else(|| format!("Endpoint WireGuard invalide : {endpoint}"))?;
+
+    let port = port
+        .parse::<u16>()
+        .map_err(|_| format!("Port WireGuard invalide : {endpoint}"))?;
+
+    Ok((host.to_string(), port))
+}
+
+fn resolve_endpoint(endpoint: &str) -> Result<(String, u16), String> {
+    let (host, port) = endpoint_parts(endpoint)?;
+
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        return match ip {
+            IpAddr::V4(ip) => Ok((ip.to_string(), port)),
+            IpAddr::V6(_) => Err(
+                "Les endpoints WireGuard IPv6 ne sont pas encore pris en charge sous Linux."
+                    .into(),
+            ),
+        };
+    }
+
+    let addresses = (host.as_str(), port)
+        .to_socket_addrs()
+        .map_err(|e| format!("Impossible de résoudre {host} : {e}"))?;
+
+    for address in addresses {
+        if let IpAddr::V4(ip) = address.ip() {
+            return Ok((ip.to_string(), port));
         }
     }
 
-    endpoint
-        .rsplit_once(':')
-        .map(|(host, _)| host.to_string())
-        .unwrap_or_else(|| endpoint.to_string())
+    Err(format!(
+        "Aucune adresse IPv4 trouvée pour le serveur WireGuard {host}"
+    ))
 }
 
-fn endpoint_port(endpoint: &str) -> u16 {
-    endpoint
-        .rsplit_once(':')
-        .and_then(|(_, port)| port.parse::<u16>().ok())
-        .unwrap_or(51820)
-}
+fn physical_route() -> Option<PhysicalRoute> {
+    let output = command_output("ip", &["-4", "route", "show", "default"]).ok()?;
+    let line = output.lines().next()?;
 
-/// Renvoie (gateway, interface physique).
-fn physical_route() -> Result<(String, String), String> {
-    let out = sh("ip", &["route", "show", "default"])?;
+    let fields: Vec<&str> = line.split_whitespace().collect();
 
-    for line in out.lines() {
-        let cols: Vec<&str> = line.split_whitespace().collect();
+    let mut gateway = None;
+    let mut iface = None;
 
-        if cols.first() != Some(&"default") {
-            continue;
-        }
-
-        let gateway = cols
-            .windows(2)
-            .find(|w| w[0] == "via")
-            .map(|w| w[1].to_string());
-
-        let iface = cols
-            .windows(2)
-            .find(|w| w[0] == "dev")
-            .map(|w| w[1].to_string());
-
-        if let (Some(gateway), Some(iface)) = (gateway, iface) {
-            return Ok((gateway, iface));
+    let mut i = 0;
+    while i < fields.len() {
+        match fields[i] {
+            "via" if i + 1 < fields.len() => {
+                gateway = Some(fields[i + 1].to_string());
+                i += 2;
+            }
+            "dev" if i + 1 < fields.len() => {
+                iface = Some(fields[i + 1].to_string());
+                i += 2;
+            }
+            _ => i += 1,
         }
     }
 
-    Err("Aucune connexion réseau active.".into())
-}
-
-pub fn current_gateway() -> Option<String> {
-    physical_route().ok().map(|(gateway, iface)| {
-        format!("{gateway}@{iface}")
+    Some(PhysicalRoute {
+        gateway,
+        iface: iface?,
     })
 }
 
-fn nft_delete() {
-    let _ = sh("nft", &["delete", "table", "inet", NFT_TABLE]);
+pub fn current_gateway() -> Option<String> {
+    let route = physical_route()?;
+
+    Some(match route.gateway {
+        Some(gateway) => format!("{gateway}@{}", route.iface),
+        None => format!("direct@{}", route.iface),
+    })
+}
+
+fn endpoint_route_add(endpoint_ip: &str, route: &PhysicalRoute) -> Result<(), String> {
+    let destination = format!("{endpoint_ip}/32");
+
+    match &route.gateway {
+        Some(gateway) => command_status(
+            "ip",
+            &[
+                "-4",
+                "route",
+                "replace",
+                &destination,
+                "via",
+                gateway,
+                "dev",
+                &route.iface,
+            ],
+        ),
+        None => command_status(
+            "ip",
+            &[
+                "-4",
+                "route",
+                "replace",
+                &destination,
+                "dev",
+                &route.iface,
+            ],
+        ),
+    }
+}
+
+fn endpoint_route_del(endpoint_ip: &str) {
+    let destination = format!("{endpoint_ip}/32");
+    let _ = Command::new("ip")
+        .args(["-4", "route", "del", &destination])
+        .status();
+}
+
+fn tunnel_routes_add(iface: &str) -> Result<(), String> {
+    command_status(
+        "ip",
+        &["-4", "route", "replace", "0.0.0.0/1", "dev", iface],
+    )?;
+
+    if let Err(e) = command_status(
+        "ip",
+        &["-4", "route", "replace", "128.0.0.0/1", "dev", iface],
+    ) {
+        let _ = Command::new("ip")
+            .args(["-4", "route", "del", "0.0.0.0/1", "dev", iface])
+            .status();
+
+        return Err(e);
+    }
+
+    Ok(())
+}
+
+fn tunnel_routes_del(iface: &str) {
+    let _ = Command::new("ip")
+        .args(["-4", "route", "del", "0.0.0.0/1", "dev", iface])
+        .status();
+
+    let _ = Command::new("ip")
+        .args(["-4", "route", "del", "128.0.0.0/1", "dev", iface])
+        .status();
+}
+
+fn killswitch_off() {
+    let _ = Command::new("nft")
+        .args(["delete", "table", "inet", NFT_TABLE])
+        .status();
 }
 
 fn killswitch_on(
@@ -89,288 +267,182 @@ fn killswitch_on(
     endpoint_ip: &str,
     endpoint_port: u16,
 ) -> Result<(), String> {
-    nft_delete();
+    killswitch_off();
 
-    sh("nft", &["add", "table", "inet", NFT_TABLE])
-        .map_err(|e| format!("Impossible de créer le pare-feu : {e}"))?;
+    let rules = format!(
+        r#"
+table inet {table} {{
+    chain output {{
+        type filter hook output priority 0; policy drop;
 
-    sh(
-        "nft",
-        &[
-            "add",
-            "chain",
-            "inet",
-            NFT_TABLE,
-            "output",
-            "{",
-            "type",
-            "filter",
-            "hook",
-            "output",
-            "priority",
-            "-100",
-            ";",
-            "policy",
-            "drop",
-            ";",
-            "}",
-        ],
-    )
-    .map_err(|e| {
-        nft_delete();
-        format!("Impossible d'armer le kill-switch : {e}")
-    })?;
+        oifname "lo" accept
+        oifname "{tunnel}" accept
 
-    let endpoint_port_string = endpoint_port.to_string();
+        oifname "{physical}" ip daddr {endpoint} udp dport {port} accept
 
-    let rules = [
-        vec![
-            "add", "rule", "inet", NFT_TABLE, "output",
-            "oifname", "lo", "accept",
-        ],
-        vec![
-            "add", "rule", "inet", NFT_TABLE, "output",
-            "oifname", tunnel_iface, "accept",
-        ],
-        vec![
-            "add", "rule", "inet", NFT_TABLE, "output",
-            "oifname", physical_iface,
-            "ip", "daddr", endpoint_ip,
-            "udp", "dport", &endpoint_port_string,
-            "accept",
-        ],
-        vec![
-            "add", "rule", "inet", NFT_TABLE, "output",
-            "udp", "sport", "68",
-            "udp", "dport", "67",
-            "accept",
-        ],
-    ];
+        oifname "{physical}" udp sport 68 udp dport 67 accept
+        oifname "{physical}" udp sport 546 udp dport 547 accept
+    }}
+}}
+"#,
+        table = NFT_TABLE,
+        tunnel = tunnel_iface,
+        physical = physical_iface,
+        endpoint = endpoint_ip,
+        port = endpoint_port,
+    );
 
-    for rule in rules {
-        if let Err(e) = sh("nft", &rule) {
-            nft_delete();
-            return Err(format!("Règle de kill-switch refusée : {e}"));
-        }
+    nft_script(&rules)
+}
+
+fn save_state(state: &Applied) -> Result<(), String> {
+    fs::create_dir_all(STATE_DIR)
+        .map_err(|e| format!("Impossible de créer {STATE_DIR} : {e}"))?;
+
+    let gateway = state.gateway.as_deref().unwrap_or("-");
+
+    let content = format!(
+        "{}\n{}\n{}\n{}\n{}\n",
+        state.tunnel_iface,
+        state.physical_iface,
+        gateway,
+        state.endpoint_ip,
+        state.endpoint_port
+    );
+
+    fs::write(STATE_FILE, content)
+        .map_err(|e| format!("Impossible d'enregistrer l'état réseau : {e}"))
+}
+
+fn load_state() -> Option<Applied> {
+    let content = fs::read_to_string(STATE_FILE).ok()?;
+    let mut lines = content.lines();
+
+    let tunnel_iface = lines.next()?.to_string();
+    let physical_iface = lines.next()?.to_string();
+
+    let gateway_line = lines.next()?.to_string();
+    let gateway = if gateway_line == "-" {
+        None
+    } else {
+        Some(gateway_line)
+    };
+
+    let endpoint_ip = lines.next()?.to_string();
+    let endpoint_port = lines.next()?.parse::<u16>().ok()?;
+
+    Some(Applied {
+        tunnel_iface,
+        physical_iface,
+        gateway,
+        endpoint_ip,
+        endpoint_port,
+    })
+}
+
+pub fn is_armed() -> bool {
+    Command::new("nft")
+        .args(["list", "table", "inet", NFT_TABLE])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+pub fn apply(iface: &str, endpoint: &str, _dns: &[String]) -> Result<(), String> {
+    revert();
+
+    let (endpoint_ip, endpoint_port) = resolve_endpoint(endpoint)?;
+
+    let route = physical_route()
+        .ok_or_else(|| "Impossible de déterminer la route réseau physique.".to_string())?;
+
+    endpoint_route_add(&endpoint_ip, &route)?;
+
+    if let Err(e) = tunnel_routes_add(iface) {
+        endpoint_route_del(&endpoint_ip);
+        return Err(e);
+    }
+
+    let state = Applied {
+        tunnel_iface: iface.to_string(),
+        physical_iface: route.iface.clone(),
+        gateway: route.gateway.clone(),
+        endpoint_ip: endpoint_ip.clone(),
+        endpoint_port,
+    };
+
+    // Sauvegarde avant le kill-switch afin de pouvoir restaurer le réseau
+    // même si l'installation des règles nftables échoue.
+    if let Err(e) = save_state(&state) {
+        tunnel_routes_del(iface);
+        endpoint_route_del(&endpoint_ip);
+        return Err(e);
+    }
+
+    if let Err(e) = killswitch_on(
+        iface,
+        &route.iface,
+        &endpoint_ip,
+        endpoint_port,
+    ) {
+        tunnel_routes_del(iface);
+        endpoint_route_del(&endpoint_ip);
+        let _ = fs::remove_file(STATE_FILE);
+        return Err(e);
     }
 
     Ok(())
 }
 
-pub struct Applied {
-    pub iface: String,
-    pub endpoint_ip: String,
-    pub gateway: String,
-    pub physical_iface: String,
+pub fn revert() {
+    if let Some(state) = load_state() {
+        tunnel_routes_del(&state.tunnel_iface);
+        endpoint_route_del(&state.endpoint_ip);
+    }
+
+    killswitch_off();
+
+    let _ = fs::remove_file(STATE_FILE);
 }
 
-impl Applied {
-    fn save(&self) {
-        let value = serde_json::json!({
-            "iface": self.iface,
-            "endpoint_ip": self.endpoint_ip,
-            "gateway": self.gateway,
-            "physical_iface": self.physical_iface
-        });
+pub fn rebind(iface: &str, endpoint: &str) -> Result<(), String> {
+    let previous = load_state();
 
-        let _ = std::fs::create_dir_all("/var/lib/deliriuum-direct");
-        let _ = std::fs::write(STATE, value.to_string());
+    if let Some(state) = &previous {
+        tunnel_routes_del(&state.tunnel_iface);
+        endpoint_route_del(&state.endpoint_ip);
     }
 
-    fn load() -> Option<Self> {
-        let text = std::fs::read_to_string(STATE).ok()?;
-        let value: serde_json::Value = serde_json::from_str(&text).ok()?;
+    let (endpoint_ip, endpoint_port) = resolve_endpoint(endpoint)?;
 
-        Some(Self {
-            iface: value["iface"].as_str()?.to_string(),
-            endpoint_ip: value["endpoint_ip"].as_str()?.to_string(),
-            gateway: value["gateway"].as_str()?.to_string(),
-            physical_iface: value["physical_iface"].as_str()?.to_string(),
-        })
-    }
-}
+    let route = physical_route()
+        .ok_or_else(|| "Impossible de déterminer la nouvelle route physique.".to_string())?;
 
-pub fn apply(
-    iface: &str,
-    endpoint: &str,
-    _dns: &[String],
-) -> Result<Applied, String> {
-    revert();
+    endpoint_route_add(&endpoint_ip, &route)?;
 
-    let endpoint_ip = endpoint_host(endpoint);
-    let endpoint_port = endpoint_port(endpoint);
-
-    let (gateway, physical_iface) = physical_route()?;
-
-    // Le serveur WireGuard doit rester accessible hors tunnel.
-    sh(
-        "ip",
-        &[
-            "route",
-            "replace",
-            &endpoint_ip,
-            "via",
-            &gateway,
-            "dev",
-            &physical_iface,
-        ],
-    )
-    .map_err(|e| format!("Route vers le serveur refusée : {e}"))?;
-
-    // Deux demi-routes plus spécifiques que la route par défaut.
-    for route in ["0.0.0.0/1", "128.0.0.0/1"] {
-        if let Err(e) = sh(
-            "ip",
-            &[
-                "route",
-                "replace",
-                route,
-                "dev",
-                iface,
-            ],
-        ) {
-            revert();
-            return Err(format!("Routage VPN refusé : {e}"));
-        }
-    }
-
-    if let Err(e) = killswitch_on(
-        iface,
-        &physical_iface,
-        &endpoint_ip,
-        endpoint_port,
-    ) {
-        revert();
+    if let Err(e) = tunnel_routes_add(iface) {
+        endpoint_route_del(&endpoint_ip);
         return Err(e);
     }
 
-    let applied = Applied {
-        iface: iface.to_string(),
-        endpoint_ip,
-        gateway,
-        physical_iface,
+    let state = Applied {
+        tunnel_iface: iface.to_string(),
+        physical_iface: route.iface.clone(),
+        gateway: route.gateway.clone(),
+        endpoint_ip: endpoint_ip.clone(),
+        endpoint_port,
     };
 
-    applied.save();
-
-    Ok(applied)
-}
-
-pub fn revert() {
-    if let Some(old) = Applied::load() {
-        for route in ["0.0.0.0/1", "128.0.0.0/1"] {
-            let _ = sh(
-                "ip",
-                &[
-                    "route",
-                    "delete",
-                    route,
-                    "dev",
-                    &old.iface,
-                ],
-            );
-        }
-
-        let _ = sh(
-            "ip",
-            &[
-                "route",
-                "delete",
-                &old.endpoint_ip,
-                "via",
-                &old.gateway,
-                "dev",
-                &old.physical_iface,
-            ],
-        );
-    }
-
-    nft_delete();
-
-    let _ = std::fs::remove_file(STATE);
-}
-
-pub fn is_armed() -> bool {
-    sh("nft", &["list", "table", "inet", NFT_TABLE]).is_ok()
-}
-
-pub fn rebind(new_iface: &str, endpoint: &str) -> Result<(), String> {
-    let old = Applied::load()
-        .ok_or_else(|| "Aucune protection à rebrancher.".to_string())?;
-
-    let endpoint_ip = endpoint_host(endpoint);
-    let endpoint_port = endpoint_port(endpoint);
-
-    for route in ["0.0.0.0/1", "128.0.0.0/1"] {
-        let _ = sh(
-            "ip",
-            &[
-                "route",
-                "delete",
-                route,
-                "dev",
-                &old.iface,
-            ],
-        );
-    }
-
-    let _ = sh(
-        "ip",
-        &[
-            "route",
-            "delete",
-            &old.endpoint_ip,
-            "via",
-            &old.gateway,
-            "dev",
-            &old.physical_iface,
-        ],
-    );
-
-    let (gateway, physical_iface) = physical_route()?;
-
-    sh(
-        "ip",
-        &[
-            "route",
-            "replace",
-            &endpoint_ip,
-            "via",
-            &gateway,
-            "dev",
-            &physical_iface,
-        ],
-    )
-    .map_err(|e| format!("Route vers le serveur refusée : {e}"))?;
-
-    for route in ["0.0.0.0/1", "128.0.0.0/1"] {
-        sh(
-            "ip",
-            &[
-                "route",
-                "replace",
-                route,
-                "dev",
-                new_iface,
-            ],
-        )
-        .map_err(|e| format!("Routage VPN refusé : {e}"))?;
-    }
+    save_state(&state)?;
 
     killswitch_on(
-        new_iface,
-        &physical_iface,
+        iface,
+        &route.iface,
         &endpoint_ip,
         endpoint_port,
     )?;
-
-    Applied {
-        iface: new_iface.to_string(),
-        endpoint_ip,
-        gateway,
-        physical_iface,
-    }
-    .save();
 
     Ok(())
 }

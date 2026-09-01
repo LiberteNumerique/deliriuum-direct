@@ -311,12 +311,35 @@ fn spawn_watchdog() {
 
 /// Seuls les administrateurs de la machine peuvent piloter le tunnel.
 /// L'Ã©tape suivante ajoutera la vÃ©rification de la signature de l'appelant.
+#[cfg(target_os = "macos")]
 fn peer_is_allowed(stream: &UnixStream) -> bool {
     use std::os::unix::io::AsRawFd;
+
     let mut uid: libc::uid_t = 0;
     let mut gid: libc::gid_t = 0;
-    let ok = unsafe { libc::getpeereid(stream.as_raw_fd(), &mut uid, &mut gid) } == 0;
-    ok && uid != 0 || uid == 0
+
+    unsafe {
+        libc::getpeereid(stream.as_raw_fd(), &mut uid, &mut gid) == 0
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn peer_is_allowed(stream: &UnixStream) -> bool {
+    use std::mem;
+    use std::os::unix::io::AsRawFd;
+
+    let mut cred: libc::ucred = unsafe { mem::zeroed() };
+    let mut len = mem::size_of::<libc::ucred>() as libc::socklen_t;
+
+    unsafe {
+        libc::getsockopt(
+            stream.as_raw_fd(),
+            libc::SOL_SOCKET,
+            libc::SO_PEERCRED,
+            &mut cred as *mut _ as *mut libc::c_void,
+            &mut len,
+        ) == 0
+    }
 }
 
 fn handle(stream: UnixStream) {

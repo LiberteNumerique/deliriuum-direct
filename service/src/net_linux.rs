@@ -255,6 +255,38 @@ fn tunnel_routes_del(iface: &str) {
         .status();
 }
 
+fn dns_apply(iface: &str, dns: &[String]) -> Result<(), String> {
+    if dns.is_empty() {
+        return Ok(());
+    }
+
+    let mut args = vec!["dns", iface];
+    args.extend(dns.iter().map(String::as_str));
+    command_status("resolvectl", &args)?;
+
+    if let Err(e) = command_status("resolvectl", &["domain", iface, "~."]) {
+        let _ = Command::new("resolvectl")
+            .args(["revert", iface])
+            .status();
+        return Err(e);
+    }
+
+    if let Err(e) = command_status("resolvectl", &["default-route", iface, "yes"]) {
+        let _ = Command::new("resolvectl")
+            .args(["revert", iface])
+            .status();
+        return Err(e);
+    }
+
+    Ok(())
+}
+
+fn dns_revert(iface: &str) {
+    let _ = Command::new("resolvectl")
+        .args(["revert", iface])
+        .status();
+}
+
 fn killswitch_off() {
     let _ = Command::new("nft")
         .args(["delete", "table", "inet", NFT_TABLE])
@@ -350,7 +382,7 @@ pub fn is_armed() -> bool {
         .unwrap_or(false)
 }
 
-pub fn apply(iface: &str, endpoint: &str, _dns: &[String]) -> Result<(), String> {
+pub fn apply(iface: &str, endpoint: &str, dns: &[String]) -> Result<(), String> {
     revert();
 
     let (endpoint_ip, endpoint_port) = resolve_endpoint(endpoint)?;
@@ -381,12 +413,20 @@ pub fn apply(iface: &str, endpoint: &str, _dns: &[String]) -> Result<(), String>
         return Err(e);
     }
 
+    if let Err(e) = dns_apply(iface, dns) {
+        tunnel_routes_del(iface);
+        endpoint_route_del(&endpoint_ip);
+        let _ = fs::remove_file(STATE_FILE);
+        return Err(e);
+    }
+
     if let Err(e) = killswitch_on(
         iface,
         &route.iface,
         &endpoint_ip,
         endpoint_port,
     ) {
+        dns_revert(iface);
         tunnel_routes_del(iface);
         endpoint_route_del(&endpoint_ip);
         let _ = fs::remove_file(STATE_FILE);
@@ -398,6 +438,7 @@ pub fn apply(iface: &str, endpoint: &str, _dns: &[String]) -> Result<(), String>
 
 pub fn revert() {
     if let Some(state) = load_state() {
+        dns_revert(&state.tunnel_iface);
         tunnel_routes_del(&state.tunnel_iface);
         endpoint_route_del(&state.endpoint_ip);
     }

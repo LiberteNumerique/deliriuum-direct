@@ -87,20 +87,38 @@ fn kr(key: &str) -> Result<keyring::Entry> {
     keyring::Entry::new(KEYRING, key).map_err(|_| "Trousseau du systÃ¨me inaccessible.".into())
 }
 
+#[cfg(not(target_os = "macos"))]
 fn kr_get(key: &str) -> Option<String> {
     kr(key).ok()?.get_password().ok()
 }
 
+#[cfg(target_os = "macos")]
+fn kr_get(_key: &str) -> Option<String> {
+    None
+}
+
+#[cfg(not(target_os = "macos"))]
 fn kr_set(key: &str, value: &str) {
     if let Ok(e) = kr(key) {
         let _ = e.set_password(value);
     }
 }
 
+#[cfg(target_os = "macos")]
+fn kr_set(_key: &str, _value: &str) {
+    // Pas de stockage persistant dans le Trousseau sur macOS.
+}
+
+#[cfg(not(target_os = "macos"))]
 fn kr_del(key: &str) {
     if let Ok(e) = kr(key) {
         let _ = e.delete_credential();
     }
+}
+
+#[cfg(target_os = "macos")]
+fn kr_del(_key: &str) {
+    // Rien à supprimer : aucun secret n'est persisté dans le Trousseau.
 }
 
 // ============================================================ appels HTTP

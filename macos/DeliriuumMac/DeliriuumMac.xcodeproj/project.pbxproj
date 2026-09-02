@@ -152,7 +152,7 @@
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/emmanuelle/Downloads/ALN/PROJECTS/DELIRIUUM/deliriuum-direct/macos/wireguard-apple/Sources/WireGuardKitGo";
+			buildWorkingDirectory = "$(SRCROOT)/../wireguard-apple/Sources/WireGuardKitGo";
 			dependencies = (
 			);
 			name = WireGuardGoBridgemacOS;

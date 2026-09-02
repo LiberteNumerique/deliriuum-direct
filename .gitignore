@@ -12,3 +12,10 @@ exe-icon.png
 
 # Dépôt WireGuard Windows cloné localement
 wireguard-windows/
+
+# macOS local build artifacts
+macos/DeliriuumMac/build/
+src-tauri/macos/
+
+# Local WireGuard Apple checkout
+macos/wireguard-apple/

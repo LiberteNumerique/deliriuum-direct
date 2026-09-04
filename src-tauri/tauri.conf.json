@@ -57,8 +57,12 @@
     },
     "macOS": {
       "files": {
-        "PlugIns/DeliriuumPacketTunnel.appex": "./macos/DeliriuumPacketTunnel.appex"
-      }
+        "Library/SystemExtensions/com.deliriuum.direct.PacketTunnel.systemextension": "./macos/com.deliriuum.direct.PacketTunnel.systemextension",
+        "embedded.provisionprofile": "./macos/Deliriuum_Direct_Developer_ID.provisionprofile"
+      },
+      "entitlements": "./Entitlements.plist",
+      "minimumSystemVersion": "14.3",
+      "hardenedRuntime": true
     }
   }
 }

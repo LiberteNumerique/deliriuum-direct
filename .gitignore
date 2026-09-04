@@ -19,3 +19,7 @@ src-tauri/macos/
 
 # Local WireGuard Apple checkout
 macos/wireguard-apple/
+*.backup-before-*
+Deliriuum-Direct-*.zip
+Deliriuum-Direct-macOS.dmg
+macos/DeliriuumMac/DeliriuumPacketTunnel/embedded.provisionprofile

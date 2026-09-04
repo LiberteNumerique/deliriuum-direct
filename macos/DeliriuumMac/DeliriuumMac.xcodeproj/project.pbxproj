@@ -7,13 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D1E1A0020000000000000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E1A0010000000000000001 /* main.swift */; };
 		9F6D72953047061A00E2410A /* DeliriuumMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72943047061A00E2410A /* DeliriuumMacApp.swift */; };
 		9F6D72973047061A00E2410A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72963047061A00E2410A /* ContentView.swift */; };
 		9F6D72993047061B00E2410A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F6D72983047061B00E2410A /* Assets.xcassets */; };
 		9F6D729C3047061B00E2410A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F6D729B3047061B00E2410A /* Preview Assets.xcassets */; };
 		9F6D72AA30470BD900E2410A /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F6D72A930470BD900E2410A /* NetworkExtension.framework */; };
 		9F6D72AD30470BD900E2410A /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72AC30470BD900E2410A /* PacketTunnelProvider.swift */; };
-		9F6D72B230470BD900E2410A /* DeliriuumPacketTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9F6D72B230470BD900E2410A /* com.deliriuum.direct.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 9F6D72A730470BD900E2410A /* com.deliriuum.direct.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9F6D72B830470DAC00E2410A /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D72B730470DAC00E2410A /* VPNManager.swift */; };
 		9F6D72BB304713D800E2410A /* WireGuardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9F6D72BA304713D800E2410A /* WireGuardKit */; };
 /* End PBXBuildFile section */
@@ -24,7 +25,7 @@
 			containerPortal = 9F6D72893047061A00E2410A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9F6D72A630470BD900E2410A;
-			remoteInfo = DeliriuumPacketTunnel;
+			remoteInfo = com.deliriuum.direct.PacketTunnel;
 		};
 		9F6D72C03047154400E2410A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -36,27 +37,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		9F6D72B630470BD900E2410A /* Embed Foundation Extensions */ = {
+		9F6D72B630470BD900E2410A /* Embed System Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
+			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
 			files = (
-				9F6D72B230470BD900E2410A /* DeliriuumPacketTunnel.appex in Embed Foundation Extensions */,
+				9F6D72B230470BD900E2410A /* com.deliriuum.direct.PacketTunnel.systemextension in Embed System Extensions */,
 			);
-			name = "Embed Foundation Extensions";
+			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D1E1A0010000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		9F6D72913047061A00E2410A /* DeliriuumMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DeliriuumMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F6D72943047061A00E2410A /* DeliriuumMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliriuumMacApp.swift; sourceTree = "<group>"; };
 		9F6D72963047061A00E2410A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9F6D72983047061B00E2410A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9F6D729B3047061B00E2410A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9F6D729D3047061B00E2410A /* DeliriuumMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DeliriuumMac.entitlements; sourceTree = "<group>"; };
-		9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DeliriuumPacketTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F6D72A730470BD900E2410A /* com.deliriuum.direct.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.deliriuum.direct.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F6D72A930470BD900E2410A /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		9F6D72AC30470BD900E2410A /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
 		9F6D72AE30470BD900E2410A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -98,7 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				9F6D72913047061A00E2410A /* DeliriuumMac.app */,
-				9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */,
+				9F6D72A730470BD900E2410A /* com.deliriuum.direct.PacketTunnel.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				9F6D72AC30470BD900E2410A /* PacketTunnelProvider.swift */,
+				D1E1A0010000000000000001 /* main.swift */,
 				9F6D72AE30470BD900E2410A /* Info.plist */,
 				9F6D72AF30470BD900E2410A /* DeliriuumPacketTunnel.entitlements */,
 			);
@@ -169,7 +172,7 @@
 				9F6D728D3047061A00E2410A /* Sources */,
 				9F6D728E3047061A00E2410A /* Frameworks */,
 				9F6D728F3047061A00E2410A /* Resources */,
-				9F6D72B630470BD900E2410A /* Embed Foundation Extensions */,
+				9F6D72B630470BD900E2410A /* Embed System Extensions */,
 			);
 			buildRules = (
 			);
@@ -194,13 +197,13 @@
 			dependencies = (
 				9F6D72C13047154400E2410A /* PBXTargetDependency */,
 			);
-			name = DeliriuumPacketTunnel;
+			name = com.deliriuum.direct.PacketTunnel;
 			packageProductDependencies = (
 				9F6D72BA304713D800E2410A /* WireGuardKit */,
 			);
-			productName = DeliriuumPacketTunnel;
-			productReference = 9F6D72A730470BD900E2410A /* DeliriuumPacketTunnel.appex */;
-			productType = "com.apple.product-type.app-extension";
+			productName = com.deliriuum.direct.PacketTunnel;
+			productReference = 9F6D72A730470BD900E2410A /* com.deliriuum.direct.PacketTunnel.systemextension */;
+			productType = "com.apple.product-type.system-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -280,6 +283,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1E1A0020000000000000001 /* main.swift in Sources */,
 				9F6D72AD30470BD900E2410A /* PacketTunnelProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -429,7 +433,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DeliriuumMac/Preview Content\"";
-				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				DEVELOPMENT_TEAM = LHFXT624CD;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -453,11 +457,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = DeliriuumMac/DeliriuumMac.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DeliriuumMac/Preview Content\"";
-				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				DEVELOPMENT_TEAM = LHFXT624CD;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -468,9 +473,11 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.deliriuum.direct;
+				PROVISIONING_PROFILE_SPECIFIER = "Deliriuum Direct Developer ID";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 			};
 			name = Release;
 		};
@@ -479,8 +486,8 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = DeliriuumPacketTunnel/DeliriuumPacketTunnel.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = LHFXT624CD;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DeliriuumPacketTunnel/Info.plist;
@@ -504,9 +511,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = DeliriuumPacketTunnel/DeliriuumPacketTunnel.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6LY3433ZA4;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = LHFXT624CD;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DeliriuumPacketTunnel/Info.plist;
@@ -519,10 +526,16 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.deliriuum.direct.PacketTunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "com.deliriuum.direct.PacketTunnel";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
+				WRAPPER_NAME = "com.deliriuum.direct.PacketTunnel.systemextension";
+				PRODUCT_MODULE_NAME = "DeliriuumPacketTunnel";
+				EXECUTABLE_NAME = "DeliriuumPacketTunnel";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				PROVISIONING_PROFILE_SPECIFIER = "Deliriuum PacketTunnel Developer I";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 			};
 			name = Release;
 		};

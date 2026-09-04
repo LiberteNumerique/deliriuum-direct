@@ -10,6 +10,8 @@ fn main() {
 
         println!("cargo:rustc-link-lib=framework=Foundation");
         println!("cargo:rustc-link-lib=framework=NetworkExtension");
+        println!("cargo:rustc-link-lib=framework=SystemExtensions");
+        println!("cargo:rustc-link-lib=framework=Security");
     }
 
     tauri_build::build()

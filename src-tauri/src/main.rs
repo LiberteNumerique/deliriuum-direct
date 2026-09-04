@@ -83,8 +83,10 @@ fn cfg_del(name: &str) {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 fn kr(key: &str) -> Result<keyring::Entry> {
-    keyring::Entry::new(KEYRING, key).map_err(|_| "Trousseau du systÃ¨me inaccessible.".into())
+    keyring::Entry::new(KEYRING, key)
+        .map_err(|_| "Trousseau du système inaccessible.".into())
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -92,21 +94,11 @@ fn kr_get(key: &str) -> Option<String> {
     kr(key).ok()?.get_password().ok()
 }
 
-#[cfg(target_os = "macos")]
-fn kr_get(_key: &str) -> Option<String> {
-    None
-}
-
 #[cfg(not(target_os = "macos"))]
 fn kr_set(key: &str, value: &str) {
     if let Ok(e) = kr(key) {
         let _ = e.set_password(value);
     }
-}
-
-#[cfg(target_os = "macos")]
-fn kr_set(_key: &str, _value: &str) {
-    // Pas de stockage persistant dans le Trousseau sur macOS.
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -117,8 +109,94 @@ fn kr_del(key: &str) {
 }
 
 #[cfg(target_os = "macos")]
-fn kr_del(_key: &str) {
-    // Rien à supprimer : aucun secret n'est persisté dans le Trousseau.
+unsafe extern "C" {
+    fn deliriuum_keychain_get(
+        service: *const std::os::raw::c_char,
+        account: *const std::os::raw::c_char,
+        buffer: *mut std::os::raw::c_char,
+        buffer_len: usize,
+    ) -> i32;
+
+    fn deliriuum_keychain_set(
+        service: *const std::os::raw::c_char,
+        account: *const std::os::raw::c_char,
+        value: *const std::os::raw::c_char,
+    ) -> i32;
+
+    fn deliriuum_keychain_delete(
+        service: *const std::os::raw::c_char,
+        account: *const std::os::raw::c_char,
+    ) -> i32;
+}
+
+#[cfg(target_os = "macos")]
+fn kr_get(key: &str) -> Option<String> {
+    use std::ffi::{CStr, CString};
+
+    let service = CString::new(KEYRING).ok()?;
+    let account = CString::new(key).ok()?;
+    let mut buffer = vec![0u8; 4096];
+
+    let result = unsafe {
+        deliriuum_keychain_get(
+            service.as_ptr(),
+            account.as_ptr(),
+            buffer.as_mut_ptr() as *mut std::os::raw::c_char,
+            buffer.len(),
+        )
+    };
+
+    if result != 0 {
+        return None;
+    }
+
+    let value = unsafe {
+        CStr::from_ptr(buffer.as_ptr() as *const std::os::raw::c_char)
+    };
+
+    value.to_str().ok().map(str::to_string)
+}
+
+#[cfg(target_os = "macos")]
+fn kr_set(key: &str, value: &str) {
+    use std::ffi::CString;
+
+    let Ok(service) = CString::new(KEYRING) else {
+        return;
+    };
+    let Ok(account) = CString::new(key) else {
+        return;
+    };
+    let Ok(value) = CString::new(value) else {
+        return;
+    };
+
+    let _ = unsafe {
+        deliriuum_keychain_set(
+            service.as_ptr(),
+            account.as_ptr(),
+            value.as_ptr(),
+        )
+    };
+}
+
+#[cfg(target_os = "macos")]
+fn kr_del(key: &str) {
+    use std::ffi::CString;
+
+    let Ok(service) = CString::new(KEYRING) else {
+        return;
+    };
+    let Ok(account) = CString::new(key) else {
+        return;
+    };
+
+    let _ = unsafe {
+        deliriuum_keychain_delete(
+            service.as_ptr(),
+            account.as_ptr(),
+        )
+    };
 }
 
 // ============================================================ appels HTTP
@@ -310,10 +388,20 @@ async fn ensure_device(app: &App) -> Result<(StaticSecret, String)> {
 
     // 1. L'identifiant local est-il toujours valable ?
     if let Some(id) = cfg_get("device-id") {
-        if list.iter().any(|d| d["id"].as_str() == Some(id.as_str())) {
-            return Ok((secret, id));
+        if let Some(device) = list
+            .iter()
+            .find(|d| d["id"].as_str() == Some(id.as_str()))
+        {
+            if device["public_key"].as_str() == Some(public.as_str()) {
+                return Ok((secret, id));
+            }
+
+            // L'identifiant existe, mais sa clé publique ne correspond
+            // plus à la clé privée locale : ne pas réutiliser ce device.
+            cfg_del("device-id");
+        } else {
+            cfg_del("device-id");
         }
-        cfg_del("device-id");
     }
 
     // 2. Sinon, notre clÃ© publique est peut-Ãªtre dÃ©jÃ  enregistrÃ©e.
@@ -591,8 +679,7 @@ async fn connect(app: State<'_, App>) -> Result<Connected> {
     Ok(Connected { node: host.clone(), ip: String::new() })
 }
 
-#[tauri::command]
-async fn disconnect(app: State<'_, App>) -> Result<()> {
+async fn disconnect_inner(app: &App) -> Result<()> {
     let id = app
         .session_id
         .lock()
@@ -600,7 +687,9 @@ async fn disconnect(app: State<'_, App>) -> Result<()> {
         .clone()
         .or_else(|| cfg_get("session-id"));
 
-    // Le tunnel tombe d'abord : la session cÃ´tÃ© master est secondaire.
+    // Le tunnel tombe d'abord.
+    // Sur macOS, down() désactive aussi On-Demand avant
+    // d'arrêter le tunnel.
     let (rx, tx) = app.tunnel.lock().unwrap().down()?;
 
     if let Some(id) = id {
@@ -608,14 +697,25 @@ async fn disconnect(app: State<'_, App>) -> Result<()> {
             .auth_call(
                 reqwest::Method::POST,
                 &format!("/sessions/{id}/disconnect"),
-                Some(json!({ "bytes_in": rx, "bytes_out": tx })),
+                Some(json!({
+                    "bytes_in": rx,
+                    "bytes_out": tx
+                })),
             )
             .await;
     }
+
     *app.session_id.lock().unwrap() = None;
     cfg_del("session-id");
+
     Ok(())
 }
+
+#[tauri::command]
+async fn disconnect(app: State<'_, App>) -> Result<()> {
+    disconnect_inner(app.inner()).await
+}
+
 
 #[derive(Serialize)]
 struct Protection {
@@ -938,9 +1038,43 @@ fn main() {
             delete_account,
             open_url
         ])
-        // Fermer la fenÃªtre ne coupe pas la protection : le service garde le
-        // tunnel, comme chez Mullvad ou Proton. Seul un clic sur Â« ProtÃ©gÃ© Â»
-        // ou la suppression du compte l'arrÃªtent.
+        .on_window_event(|window, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                /*
+                 * Fermeture volontaire de la fenêtre :
+                 *
+                 * 1. empêcher la fermeture immédiate ;
+                 * 2. désactiver On-Demand ;
+                 * 3. arrêter proprement le VPN ;
+                 * 4. quitter l'application.
+                 *
+                 * Un crash du PacketTunnel ne passe PAS ici :
+                 * On-Demand reste alors actif et macOS reconnecte.
+                 */
+                api.prevent_close();
+
+                let app_handle = window.app_handle().clone();
+
+                tauri::async_runtime::spawn(async move {
+                    let state = app_handle.state::<App>();
+
+                    match disconnect_inner(state.inner()).await {
+                        Ok(()) => {
+                            app_handle.exit(0);
+                        }
+
+                        Err(error) => {
+                            eprintln!(
+                                "[Deliriuum] fermeture annulée : {}",
+                                error
+                            );
+                        }
+                    }
+                });
+            }
+        })
+
         .run(tauri::generate_context!())
         .expect("Deliriuum Direct n'a pas pu dÃ©marrer");
 }

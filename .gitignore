@@ -23,3 +23,5 @@ macos/wireguard-apple/
 Deliriuum-Direct-*.zip
 Deliriuum-Direct-macOS.dmg
 macos/DeliriuumMac/DeliriuumPacketTunnel/embedded.provisionprofile
+macos/DeliriuumMac/.derivedData/
+macos/DeliriuumMac/.derivedData/

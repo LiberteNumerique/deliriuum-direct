@@ -151,6 +151,272 @@ static BOOL activate_system_extension(NSString **failure)
 }
 
 
+
+
+static BOOL remove_deliriuum_vpn_configuration(NSString **failure)
+{
+    __block NSArray<NETunnelProviderManager *> *managers = nil;
+    __block NSError *loadError = nil;
+
+    dispatch_semaphore_t loadSemaphore =
+        dispatch_semaphore_create(0);
+
+    [NETunnelProviderManager
+        loadAllFromPreferencesWithCompletionHandler:
+        ^(
+            NSArray<NETunnelProviderManager *> *loadedManagers,
+            NSError *error
+        ) {
+            managers = loadedManagers;
+            loadError = error;
+            dispatch_semaphore_signal(loadSemaphore);
+        }];
+
+    long loadWait =
+        dispatch_semaphore_wait(
+            loadSemaphore,
+            dispatch_time(
+                DISPATCH_TIME_NOW,
+                (int64_t)(10 * NSEC_PER_SEC)
+            )
+        );
+
+    if (loadWait != 0) {
+        if (failure != NULL) {
+            *failure =
+                @"Délai dépassé pendant le chargement "
+                 "de la configuration VPN.";
+        }
+        return NO;
+    }
+
+    if (loadError != nil) {
+        if (failure != NULL) {
+            *failure = loadError.localizedDescription;
+        }
+        return NO;
+    }
+
+    for (NETunnelProviderManager *manager in managers ?: @[]) {
+
+        NETunnelProviderProtocol *protocol =
+            (NETunnelProviderProtocol *)
+                manager.protocolConfiguration;
+
+        if (![protocol.providerBundleIdentifier
+                isEqualToString:
+                    DeliriuumProviderBundleIdentifier]) {
+            continue;
+        }
+
+        /*
+         * 1. Empêcher toute reconnexion automatique.
+         */
+        manager.onDemandEnabled = NO;
+        manager.onDemandRules = @[];
+
+        dispatch_semaphore_t saveSemaphore =
+            dispatch_semaphore_create(0);
+
+        __block NSError *saveError = nil;
+
+        [manager
+            saveToPreferencesWithCompletionHandler:
+            ^(NSError *error) {
+                saveError = error;
+                dispatch_semaphore_signal(saveSemaphore);
+            }];
+
+        long saveWait =
+            dispatch_semaphore_wait(
+                saveSemaphore,
+                dispatch_time(
+                    DISPATCH_TIME_NOW,
+                    (int64_t)(10 * NSEC_PER_SEC)
+                )
+            );
+
+        if (saveWait != 0 || saveError != nil) {
+            if (failure != NULL) {
+                *failure =
+                    saveError.localizedDescription
+                    ?: @"Impossible de désactiver On-Demand.";
+            }
+            return NO;
+        }
+
+        /*
+         * 2. Arrêter proprement le PacketTunnel.
+         */
+        [manager.connection stopVPNTunnel];
+
+        /*
+         * 3. Attendre que NetworkExtension rende les routes
+         *    et l'interface au système.
+         */
+        for (NSInteger i = 0; i < 50; i++) {
+
+            NEVPNStatus status =
+                manager.connection.status;
+
+            if (
+                status == NEVPNStatusDisconnected ||
+                status == NEVPNStatusInvalid
+            ) {
+                break;
+            }
+
+            [NSThread sleepForTimeInterval:0.2];
+        }
+
+        /*
+         * 4. Désactiver puis sauvegarder la configuration.
+         */
+        manager.enabled = NO;
+
+        dispatch_semaphore_t disableSemaphore =
+            dispatch_semaphore_create(0);
+
+        __block NSError *disableError = nil;
+
+        [manager
+            saveToPreferencesWithCompletionHandler:
+            ^(NSError *error) {
+                disableError = error;
+                dispatch_semaphore_signal(disableSemaphore);
+            }];
+
+        long disableWait =
+            dispatch_semaphore_wait(
+                disableSemaphore,
+                dispatch_time(
+                    DISPATCH_TIME_NOW,
+                    (int64_t)(10 * NSEC_PER_SEC)
+                )
+            );
+
+        if (disableWait != 0 || disableError != nil) {
+            if (failure != NULL) {
+                *failure =
+                    disableError.localizedDescription
+                    ?: @"Impossible de désactiver "
+                       "la configuration VPN.";
+            }
+            return NO;
+        }
+
+        /*
+         * 5. Supprimer complètement la configuration VPN.
+         */
+        dispatch_semaphore_t removeSemaphore =
+            dispatch_semaphore_create(0);
+
+        __block NSError *removeError = nil;
+
+        [manager
+            removeFromPreferencesWithCompletionHandler:
+            ^(NSError *error) {
+                removeError = error;
+                dispatch_semaphore_signal(removeSemaphore);
+            }];
+
+        long removeWait =
+            dispatch_semaphore_wait(
+                removeSemaphore,
+                dispatch_time(
+                    DISPATCH_TIME_NOW,
+                    (int64_t)(10 * NSEC_PER_SEC)
+                )
+            );
+
+        if (removeWait != 0 || removeError != nil) {
+            if (failure != NULL) {
+                *failure =
+                    removeError.localizedDescription
+                    ?: @"Impossible de supprimer "
+                       "la configuration VPN.";
+            }
+            return NO;
+        }
+    }
+
+    DeliriuumManager = nil;
+
+    return YES;
+}
+
+
+static BOOL deactivate_system_extension(NSString **failure)
+{
+    DeliriuumSystemExtensionDelegate *delegate =
+        [[DeliriuumSystemExtensionDelegate alloc] init];
+
+    delegate.semaphore = dispatch_semaphore_create(0);
+    delegate.success = NO;
+    delegate.rebootRequired = NO;
+    delegate.failure = nil;
+
+    dispatch_queue_t callbackQueue =
+        dispatch_queue_create(
+            "com.deliriuum.direct.systemextension.deactivate",
+            DISPATCH_QUEUE_SERIAL
+        );
+
+    OSSystemExtensionRequest *request =
+        [OSSystemExtensionRequest
+            deactivationRequestForExtension:
+                DeliriuumProviderBundleIdentifier
+            queue:callbackQueue];
+
+    request.delegate = delegate;
+
+    [[OSSystemExtensionManager sharedManager]
+        submitRequest:request];
+
+    dispatch_time_t timeout =
+        dispatch_time(
+            DISPATCH_TIME_NOW,
+            (int64_t)(120 * NSEC_PER_SEC)
+        );
+
+    long waitResult =
+        dispatch_semaphore_wait(
+            delegate.semaphore,
+            timeout
+        );
+
+    if (waitResult != 0) {
+        if (failure != NULL) {
+            *failure =
+                @"Délai dépassé pendant la désactivation "
+                 "de l’extension système.";
+        }
+        return NO;
+    }
+
+    if (delegate.rebootRequired) {
+        if (failure != NULL) {
+            *failure =
+                @"La désactivation a été enregistrée. "
+                 "Redémarrez le Mac pour terminer.";
+        }
+        return NO;
+    }
+
+    if (!delegate.success) {
+        if (failure != NULL) {
+            *failure =
+                delegate.failure
+                ?: @"Impossible de désactiver "
+                    "l’extension système Deliriuum.";
+        }
+        return NO;
+    }
+
+    return YES;
+}
+
+
 /* ============================================================
    Helpers
    ============================================================ */
@@ -175,6 +441,60 @@ static void set_error(
     snprintf(buffer, buffer_len, "%s", text);
 }
 
+
+
+
+int deliriuum_system_extension_deactivate(
+    char *error_buffer,
+    size_t error_buffer_len
+)
+{
+    @autoreleasepool {
+
+        NSString *failure = nil;
+
+        /*
+         * IMPORTANT :
+         * nettoyer NetworkExtension AVANT de retirer
+         * la System Extension.
+         */
+        if (!remove_deliriuum_vpn_configuration(&failure)) {
+
+            set_error(
+                error_buffer,
+                error_buffer_len,
+                failure
+                    ?: @"Impossible de nettoyer "
+                       "la configuration VPN Deliriuum."
+            );
+
+            return -1;
+        }
+
+        /*
+         * Laisser macOS finaliser la restitution
+         * de la pile réseau avant la désactivation.
+         */
+        [NSThread sleepForTimeInterval:1.0];
+
+        failure = nil;
+
+        if (!deactivate_system_extension(&failure)) {
+
+            set_error(
+                error_buffer,
+                error_buffer_len,
+                failure
+                    ?: @"Impossible de désactiver "
+                       "l’extension système Deliriuum."
+            );
+
+            return -1;
+        }
+
+        return 0;
+    }
+}
 
 
 /* ============================================================

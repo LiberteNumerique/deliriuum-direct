@@ -831,6 +831,34 @@ mod tunnel {
         }
     }
 
+    pub fn deactivate_system_extension() -> Result<()> {
+        let mut error = vec![0i8; 2048];
+
+        let result = unsafe {
+            deliriuum_system_extension_deactivate(
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+
+        if result == 0 {
+            return Ok(());
+        }
+
+        let message = unsafe {
+            std::ffi::CStr::from_ptr(error.as_ptr())
+        }
+        .to_string_lossy()
+        .trim()
+        .to_string();
+
+        if message.is_empty() {
+            Err("Impossible de désactiver l’extension système.".into())
+        } else {
+            Err(message)
+        }
+    }
+
     #[derive(Default)]
     pub struct Backend;
 
@@ -875,6 +903,11 @@ mod tunnel {
             error_buffer_len: usize,
         ) -> i32;
 
+        fn deliriuum_system_extension_deactivate(
+            error_buffer: *mut std::os::raw::c_char,
+            error_buffer_len: usize,
+        ) -> i32;
+
         fn deliriuum_vpn_down() -> i32;
         fn deliriuum_vpn_status() -> i32;
     }
@@ -885,6 +918,38 @@ mod tunnel {
         pub rx: u64,
         pub tx: u64,
     }
+
+    pub fn deactivate_system_extension() -> Result<()> {
+        let mut error = vec![0i8; 2048];
+
+        let result = unsafe {
+            deliriuum_system_extension_deactivate(
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+
+        if result == 0 {
+            return Ok(());
+        }
+
+        let message = unsafe {
+            std::ffi::CStr::from_ptr(error.as_ptr())
+        }
+        .to_string_lossy()
+        .trim()
+        .to_string();
+
+        if message.is_empty() {
+            Err(
+                "Impossible de désactiver l’extension système Deliriuum."
+                    .into()
+            )
+        } else {
+            Err(message)
+        }
+    }
+
 
     #[derive(Default)]
     pub struct Backend;
@@ -1022,6 +1087,20 @@ mod tunnel {
     }
 }
 fn main() {
+    #[cfg(target_os = "macos")]
+    if std::env::args().any(|arg| arg == "--remove-system-extension") {
+        match tunnel::deactivate_system_extension() {
+            Ok(()) => {
+                println!("OK : extension système Deliriuum désactivée.");
+            }
+            Err(error) => {
+                eprintln!("{error}");
+            }
+        }
+
+        return;
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(App::default())

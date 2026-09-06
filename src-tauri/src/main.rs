@@ -831,34 +831,6 @@ mod tunnel {
         }
     }
 
-    pub fn deactivate_system_extension() -> Result<()> {
-        let mut error = vec![0i8; 2048];
-
-        let result = unsafe {
-            deliriuum_system_extension_deactivate(
-                error.as_mut_ptr(),
-                error.len(),
-            )
-        };
-
-        if result == 0 {
-            return Ok(());
-        }
-
-        let message = unsafe {
-            std::ffi::CStr::from_ptr(error.as_ptr())
-        }
-        .to_string_lossy()
-        .trim()
-        .to_string();
-
-        if message.is_empty() {
-            Err("Impossible de désactiver l’extension système.".into())
-        } else {
-            Err(message)
-        }
-    }
-
     #[derive(Default)]
     pub struct Backend;
 

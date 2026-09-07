@@ -22,23 +22,26 @@ xcodebuild \
   -scheme "$XCODE_SCHEME" \
   -configuration Release \
   -derivedDataPath "$DERIVED_DATA" \
+  -destination "generic/platform=macOS" \
+  ARCHS="arm64 x86_64" \
+  ONLY_ACTIVE_ARCH=NO \
   CODE_SIGNING_ALLOWED=NO \
   build
 
-APPEX="$DERIVED_DATA/Build/Products/Release/com.deliriuum.direct.PacketTunnel.systemextension"
+SYSTEMEXT="$DERIVED_DATA/Build/Products/Release/com.deliriuum.direct.PacketTunnel.systemextension"
 
-if [ ! -d "$APPEX" ]; then
-  echo "ERREUR : DeliriuumPacketTunnel.appex introuvable."
+if [ ! -d "$SYSTEMEXT" ]; then
+  echo "ERREUR : com.deliriuum.direct.PacketTunnel.systemextension introuvable."
   exit 1
 fi
 
 echo "==> Extension générée :"
-echo "$APPEX"
+echo "$SYSTEMEXT"
 
 mkdir -p "$STAGING_DIR"
 
 rm -rf "$STAGING_SYSTEMEXT"
-cp -R "$APPEX" "$STAGING_SYSTEMEXT"
+cp -R "$SYSTEMEXT" "$STAGING_SYSTEMEXT"
 
 test -f \
   "$STAGING_SYSTEMEXT/Contents/MacOS/DeliriuumPacketTunnel"
@@ -49,10 +52,20 @@ cd "$TAURI_DIR"
 
 echo "==> Build de l'application Tauri"
 
-cargo tauri build --bundles app
+cargo tauri build --target universal-apple-darwin --bundles app
 
-FINAL_APP="$TAURI_DIR/target/release/bundle/macos/Deliriuum Direct.app"
+FINAL_APP="$TAURI_DIR/target/universal-apple-darwin/release/bundle/macos/Deliriuum Direct.app"
 FINAL_SYSTEMEXT="$FINAL_APP/Contents/Library/SystemExtensions/com.deliriuum.direct.PacketTunnel.systemextension"
+
+echo
+echo "=== INTEGRATION SYSTEM EXTENSION DANS L'APP ==="
+
+mkdir -p "$FINAL_APP/Contents/Library/SystemExtensions"
+rm -rf "$FINAL_SYSTEMEXT"
+ditto "$STAGING_SYSTEMEXT" "$FINAL_SYSTEMEXT"
+
+echo "Extension intégrée :"
+echo "$FINAL_SYSTEMEXT"
 
 if [ ! -d "$FINAL_SYSTEMEXT" ]; then
   echo "ERREUR : l'extension n'est pas présente dans l'application Tauri."
